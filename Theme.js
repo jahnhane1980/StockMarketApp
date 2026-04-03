@@ -2,31 +2,34 @@
 
 export const Theme = {
   colors: {
-    // Backgrounds (wie besprochen identisch für Dialog & Main)
-    bgMain: '#1E1F22',      // Sehr dunkles Grau (aus image_9.png)
-    bgSurface: '#2B2D30',   // Etwas helleres Grau für Karten/Items
+    // Backgrounds
+    bgMain: '#1E1F22',      
+    bgSurface: '#2B2D30',   
+    bgOverlay: 'rgba(0, 0, 0, 0.7)', // Neu für Modal-Hintergrund
 
     // Borders & Dividers
-    borderSubtle: '#323232', // Dezente 1px Linien & Dialog-Rand
+    borderSubtle: '#323232', 
+    shadowDefault: '#000',           // Neu für Schatten
 
     // Text Colors
-    textPrimary: '#A9B7C6',   // Standard (aus image_2.png/Darcula)
-    textOnPrimary: '#FFFFFF', // Weiß für Text auf blauem Button
-    textSubtle: '#6A6E73',   // Dunkleres Grau für Labels/Placeholder
+    textPrimary: '#A9B7C6',   
+    textOnPrimary: '#FFFFFF', 
+    textSubtle: '#6A6E73',   
 
     // Brand & Interactions
-    brandPrimary: '#3574F0', // Das "Action Blue" für den Speicher-Button
-    inputFocus: '#808080',   // Neutrale graue Outline für das aktive Feld
+    brandPrimary: '#3574F0', 
+    inputFocus: '#808080',   
 
-    // Status Colors (aus image_2.png für Aktien)
-    statusCritical: '#BC3F3C', // Fehler-Rot (RIVN)
-    statusAlert: '#CC7832',   // Warn-Orange (TSLA)
+    // Status Colors
+    statusCritical: '#BC3F3C', 
+    statusAlert: '#CC7832',   
   },
 
   radii: {
-    standard: 6,   // Buttons, Aktien-Karten
-    input: 4,      // Eingabefelder
-    dialog: 8,     // Äußere Ecken des Einstellungs-Dialogs
+    standard: 6,   
+    input: 4,      
+    dialog: 8,     
+    full: 99,      // Neu für runde Marker
   },
 
   spacing: {
@@ -36,4 +39,36 @@ export const Theme = {
     lg: 24,
     xl: 32,
   },
+
+  // Neu: Typografie-Tokens
+  typography: {
+    size: {
+      xs: 12,
+      sm: 14,
+      md: 16,
+      lg: 18,
+      xl: 20,
+    },
+    weight: {
+      normal: '400',
+      medium: '500',
+      semibold: '600',
+      bold: 'bold',
+    }
+  },
+
+  // Neu: Effekt-Tokens
+  effects: {
+    shadowOpacityFull: 1,
+    shadowOpacityDialog: 0.3,
+    shadowRadiusMarker: 6,
+    shadowRadiusDialog: 10,
+    borderWidthThin: 1,
+  },
+
+  // Neu: Icon-Größen
+  icons: {
+    sm: 16,
+    md: 24,
+  }
 };
