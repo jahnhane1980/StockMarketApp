@@ -83,28 +83,28 @@ const SettingsDialog = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dezente Abdunkelung des Hintergrunds
+    backgroundColor: Theme.colors.bgOverlay, 
     justifyContent: 'center',
     alignItems: 'center',
   },
   dialogContainer: {
     width: '90%',
     maxWidth: 400,
-    backgroundColor: Theme.colors.bgMain, // Identisch zum Main Screen (aus image_9.png)
+    backgroundColor: Theme.colors.bgMain, 
     borderRadius: Theme.radii.dialog,
-    borderWidth: 1,
-    borderColor: Theme.colors.borderSubtle, // Der dezente graue Rand
+    borderWidth: Theme.effects.borderWidthThin,
+    borderColor: Theme.colors.borderSubtle, 
     padding: Theme.spacing.lg,
     // Leichter Schatten für Tiefe (Optional, da Border vorhanden)
-    shadowColor: '#000',
+    shadowColor: Theme.colors.shadowDefault,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowOpacity: Theme.effects.shadowOpacityDialog,
+    shadowRadius: Theme.effects.shadowRadiusDialog,
     elevation: 5,
   },
   dialogTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: Theme.typography.size.xl,
+    fontWeight: Theme.typography.weight.bold,
     color: Theme.colors.textPrimary,
     marginBottom: Theme.spacing.lg,
     textAlign: 'center',
@@ -113,18 +113,18 @@ const styles = StyleSheet.create({
     marginBottom: Theme.spacing.md,
   },
   inputLabel: {
-    fontSize: 12,
+    fontSize: Theme.typography.size.xs,
     color: Theme.colors.textSubtle,
     marginBottom: Theme.spacing.xs,
   },
   textInput: {
-    backgroundColor: 'transparent', // Wie gewünscht keine Hintergrundfarbe
+    backgroundColor: 'transparent', 
     color: Theme.colors.textPrimary,
-    borderWidth: 1,
-    borderColor: Theme.colors.borderSubtle, // Standard grauer Rand
+    borderWidth: Theme.effects.borderWidthThin,
+    borderColor: Theme.colors.borderSubtle, 
     borderRadius: Theme.radii.input,
     padding: Theme.spacing.sm,
-    fontSize: 14,
+    fontSize: Theme.typography.size.sm,
   },
   // Fokus-Outline (grau, Option 1)
   textInputFocused: {
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: Theme.spacing.lg,
-    gap: Theme.spacing.md, // Vertikaler Abstand zwischen Buttons
+    gap: Theme.spacing.md, 
   },
   // Primärer Speicher-Button (blau)
   buttonPrimary: {
@@ -144,22 +144,22 @@ const styles = StyleSheet.create({
   },
   buttonPrimaryText: {
     color: Theme.colors.textOnPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: Theme.typography.size.md,
+    fontWeight: Theme.typography.weight.bold,
   },
   // Sekundärer Cancel-Button (grau)
   buttonSecondary: {
-    backgroundColor: Theme.colors.bgSurface, // Nutzt die hellere Surface Farbe
+    backgroundColor: Theme.colors.bgSurface, 
     paddingVertical: Theme.spacing.sm,
     borderRadius: Theme.radii.standard,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: Theme.effects.borderWidthThin,
     borderColor: Theme.colors.borderSubtle,
   },
   buttonSecondaryText: {
     color: Theme.colors.textPrimary,
-    fontSize: 14,
+    fontSize: Theme.typography.size.sm,
   },
 });
 
