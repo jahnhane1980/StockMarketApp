@@ -1,6 +1,6 @@
 // App.js - Der Hauptbildschirm der Expo App
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -9,87 +9,147 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
-// Nutze Expo Icons für das Zahnrad
 import { Ionicons } from '@expo/vector-icons'; 
-// Importiere das Theme und den Dialog
+import * as Font from 'expo-font';
 import { Theme } from './Theme';
 import SettingsDialog from './components/SettingsDialog';
 
+// LayoutAnimation für Android aktivieren
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function App() {
-  // State, um den Sichtbarkeitsstatus des Dialogs zu verwalten
   const [settingsVisible, setSettingsVisible] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  // Wiederverwendbare Aktien-Item Komponente (aus image_2.png)
-  const StockItem = ({ ticker, name, price, changePercent, isWarning, isCritical }) => (
-    <View style={styles.stockItemCard}>
-      <View style={styles.stockRow}>
-        {/* Ticker (z.B. AAPL) */}
-        <Text style={styles.stockTicker}>{ticker}</Text>
-        
-        {/* Visueller Marker / Sparkline (hier vereinfacht als Text) */}
-        <Text style={styles.sparkline}>~~~</Text>
+  useEffect(() => {
+    async function loadFonts() {
+      try {
+        await Font.loadAsync(Ionicons.font);
+      } catch (e) {
+        console.warn("Fonts could not be loaded", e);
+      } finally {
+        setFontsLoaded(true);
+      }
+    }
+    loadFonts();
+  }, []);
 
-        {/* Status (Prozent, Pfeil, Icon) */}
-        <View style={styles.statusRow}>
-          <Text style={styles.stockPrice}>{price}</Text>
+  const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend }) => {
+    const [expanded, setExpanded] = useState(false);
+
+    const toggleExpand = () => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setExpanded(!expanded);
+    };
+
+    return (
+      <TouchableOpacity 
+        style={styles.stockItemCard} 
+        onPress={toggleExpand} 
+        activeOpacity={0.7}
+      >
+        <View style={styles.stockRow}>
           <Text style={[
-            styles.changePercent, 
-            isWarning && { color: Theme.colors.statusAlert },
+            styles.stockTicker,
             isCritical && { color: Theme.colors.statusCritical },
+            isWarning && { color: Theme.colors.statusAlert }
           ]}>
-            {changePercent}
+            {ticker}
           </Text>
-          {isWarning && <Ionicons name="warning-outline" size={Theme.icons.sm} color={Theme.colors.statusAlert} />}
-          {isCritical && <Ionicons name="close-circle-outline" size={Theme.icons.sm} color={Theme.colors.statusCritical} />}
+          
+          <View style={styles.statusRow}>
+            <Text style={styles.stockPrice}>{price}</Text>
+            <Text style={[
+              styles.changePercent, 
+              isWarning && { color: Theme.colors.statusAlert },
+              isCritical && { color: Theme.colors.statusCritical },
+            ]}>
+              {changePercent} {trend === 'up' ? '↑' : '↓'}
+            </Text>
+            {fontsLoaded && isWarning && <Ionicons name="warning-outline" size={Theme.icons.sm} color={Theme.colors.statusAlert} />}
+            {fontsLoaded && isCritical && <Ionicons name="close-circle-outline" size={Theme.icons.sm} color={Theme.colors.statusCritical} />}
+            {fontsLoaded && (
+              <Ionicons 
+                name={expanded ? "chevron-up" : "chevron-down"} 
+                size={Theme.icons.sm} 
+                color={Theme.colors.textSubtle} 
+              />
+            )}
+          </View>
         </View>
-      </View>
-    </View>
-  );
+
+        {/* --- Detail Ansicht (aus image_082fe5.jpg) --- */}
+        {expanded && (
+          <View style={styles.detailContainer}>
+            <View style={styles.detailGrid}>
+              <View>
+                <Text style={styles.detailLabel}>Raill</Text>
+                <Text style={styles.detailValue}>38.87</Text>
+                <Text style={[styles.detailSubValue, { color: Theme.colors.statusCritical }]}>▼ 0.73%</Text>
+              </View>
+              <View>
+                <Text style={styles.detailLabel}>Price</Text>
+                <Text style={styles.detailValue}>50.30</Text>
+                <Text style={[styles.detailSubValue, { color: Theme.colors.statusCritical }]}>▼ 1.90%</Text>
+              </View>
+              <View>
+                <Text style={styles.detailLabel}>High</Text>
+                <Text style={styles.detailValue}>43.1M</Text>
+              </View>
+            </View>
+
+            {/* Error Logs */}
+            <View style={styles.errorLog}>
+              <Text style={styles.errorText}>ERROR: NETWORK CONNECTION TIMEOUT</Text>
+              <Text style={styles.errorText}>ERROR: NETWORK CONNECTION TIMEOUT</Text>
+              <Text style={styles.errorText}>ERROR: EERORS</Text>
+            </View>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Setze Status Bar Stil auf dunkles Theme */}
       <StatusBar barStyle="light-content" backgroundColor={Theme.colors.bgMain} />
 
-      {/* --- Toolbar / Header --- */}
       <View style={styles.toolbar}>
-        {/* Makro-Status (wie in image_2.png) */}
         <View style={styles.macroGroup}>
-          <View style={styles.macroMarker} /> {/* Der blinkende Punkt */}
+          <View style={styles.macroMarker} />
           <Text style={styles.toolbarText}>Macro</Text>
         </View>
         
-        {/* Das Zahnrad-Icon, um den Dialog zu öffnen */}
         <TouchableOpacity style={styles.iconButton} onPress={() => setSettingsVisible(true)}>
-          <Ionicons name="settings-outline" size={Theme.icons.md} color={Theme.colors.textPrimary} />
+          {fontsLoaded ? (
+            <Ionicons name="settings-outline" size={Theme.icons.md} color={Theme.colors.textPrimary} />
+          ) : (
+            <Text style={{ color: Theme.colors.textPrimary }}>[S]</Text>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* --- Aktienliste --- */}
       <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent}>
-        <StockItem ticker="AAPL" price="$185.00" changePercent="+15% ↑" />
-        {/* Warnung: Orange (TSLA) */}
-        <StockItem ticker="TSLA" price="$162.50" changePercent="-3.2% ↓" isWarning={true} />
-        {/* Kritisch: Rot (RIVN) */}
-        <StockItem ticker="RIVN" price="$10.80" changePercent="-12.1% ↓" isCritical={true} />
-        <StockItem ticker="MSFT" price="$415.20" changePercent="+0.6% ↑" />
-        <StockItem ticker="GOOGL" price="$148.90" changePercent="+2.1% ↑" />
+        <StockItem ticker="AAPL" price="$185.00" changePercent="+15%" trend="up" />
+        <StockItem ticker="TSLA" price="$162.50" changePercent="-3.2%" trend="down" isWarning={true} />
+        <StockItem ticker="RIVN" price="$10.80" changePercent="-12.1%" trend="down" isCritical={true} />
+        <StockItem ticker="MSFT" price="$415.20" changePercent="+0.6%" trend="up" />
+        <StockItem ticker="GOOGL" price="$148.90" changePercent="+2.1%" trend="up" />
       </ScrollView>
 
-      {/* Letztes Update Text */}
       <Text style={styles.lastUpdateText}>Last update: 5s ago</Text>
 
-      {/* --- Der Einstellungs-Dialog (Modal) --- */}
-      <SettingsDialog 
-        visible={settingsVisible} 
-        onClose={() => setSettingsVisible(false)} // Schließt den Dialog
-      />
+      <SettingsDialog visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
     </SafeAreaView>
   );
 }
 
-// --- Styling (NUR mit Theme-Werten) ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -115,13 +175,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Theme.spacing.sm,
   },
-  // Der orange blinkende Marker (wie in image_2.png)
   macroMarker: {
     width: 16,
     height: 16,
     borderRadius: Theme.radii.full,
     backgroundColor: Theme.colors.statusAlert, 
-    // Ein kleiner Glow-Effekt (iOS)
     shadowColor: Theme.colors.statusAlert,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: Theme.effects.shadowOpacityFull,
@@ -129,18 +187,12 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: Theme.spacing.sm,
-    // Optional: Eine dezente Umrandung für das Icon
     borderWidth: Theme.effects.borderWidthThin,
     borderColor: Theme.colors.borderSubtle,
     borderRadius: Theme.radii.input,
   },
-  listContainer: {
-    flex: 1,
-  },
-  listContent: {
-    padding: Theme.spacing.md,
-    gap: Theme.spacing.sm, 
-  },
+  listContainer: { flex: 1 },
+  listContent: { padding: Theme.spacing.md, gap: Theme.spacing.sm },
   stockItemCard: {
     backgroundColor: Theme.colors.bgSurface, 
     borderRadius: Theme.radii.standard,
@@ -148,38 +200,60 @@ const styles = StyleSheet.create({
     borderWidth: Theme.effects.borderWidthThin,
     borderColor: Theme.colors.borderSubtle,
   },
-  stockRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+  stockRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   stockTicker: {
     fontSize: Theme.typography.size.md,
     fontWeight: Theme.typography.weight.semibold,
     color: Theme.colors.textPrimary,
-    width: 60, 
-  },
-  sparkline: {
-    color: Theme.colors.textSubtle,
-    fontSize: Theme.typography.size.xl,
-    letterSpacing: -2,
-    flex: 1, 
-    textAlign: 'center',
+    width: 80, 
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Theme.spacing.xs,
+    gap: Theme.spacing.sm,
     justifyContent: 'flex-end',
   },
-  stockPrice: {
-    fontSize: Theme.typography.size.sm,
-    color: Theme.colors.textPrimary,
-  },
+  stockPrice: { fontSize: Theme.typography.size.sm, color: Theme.colors.textPrimary },
   changePercent: {
     fontSize: Theme.typography.size.sm,
     color: Theme.colors.brandPrimary, 
     fontWeight: Theme.typography.weight.medium,
+    minWidth: 60,
+    textAlign: 'right',
+  },
+  detailContainer: {
+    marginTop: Theme.spacing.md,
+    paddingTop: Theme.spacing.md,
+    borderTopWidth: Theme.effects.borderWidthThin,
+    borderColor: Theme.colors.borderSubtle,
+  },
+  detailGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Theme.spacing.md,
+  },
+  detailLabel: {
+    fontSize: Theme.typography.size.xs,
+    color: Theme.colors.textSubtle,
+    marginBottom: 2,
+  },
+  detailValue: {
+    fontSize: Theme.typography.size.sm,
+    color: Theme.colors.textPrimary,
+    fontWeight: Theme.typography.weight.medium,
+  },
+  detailSubValue: {
+    fontSize: 10,
+    marginTop: 2,
+  },
+  errorLog: {
+    marginTop: Theme.spacing.sm,
+  },
+  errorText: {
+    fontSize: 10,
+    color: Theme.colors.statusCritical,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    marginBottom: 2,
   },
   lastUpdateText: {
     textAlign: 'center',
