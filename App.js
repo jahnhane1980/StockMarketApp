@@ -40,8 +40,8 @@ export default function App() {
           ]}>
             {changePercent}
           </Text>
-          {isWarning && <Ionicons name="warning-outline" size={16} color={Theme.colors.statusAlert} />}
-          {isCritical && <Ionicons name="close-circle-outline" size={16} color={Theme.colors.statusCritical} />}
+          {isWarning && <Ionicons name="warning-outline" size={Theme.icons.sm} color={Theme.colors.statusAlert} />}
+          {isCritical && <Ionicons name="close-circle-outline" size={Theme.icons.sm} color={Theme.colors.statusCritical} />}
         </View>
       </View>
     </View>
@@ -62,7 +62,7 @@ export default function App() {
         
         {/* Das Zahnrad-Icon, um den Dialog zu öffnen */}
         <TouchableOpacity style={styles.iconButton} onPress={() => setSettingsVisible(true)}>
-          <Ionicons name="settings-outline" size={24} color={Theme.colors.textPrimary} />
+          <Ionicons name="settings-outline" size={Theme.icons.md} color={Theme.colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -93,22 +93,22 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.bgMain, // Aus image_9.png
+    backgroundColor: Theme.colors.bgMain, 
   },
   toolbar: {
     height: 60,
-    backgroundColor: Theme.colors.bgMain, // Identisch zum Main Screen
+    backgroundColor: Theme.colors.bgMain, 
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Theme.spacing.md,
-    borderBottomWidth: 1,
+    borderBottomWidth: Theme.effects.borderWidthThin,
     borderColor: Theme.colors.borderSubtle,
   },
   toolbarText: {
     color: Theme.colors.textPrimary,
-    fontSize: 18,
-    fontWeight: '500',
+    fontSize: Theme.typography.size.lg,
+    fontWeight: Theme.typography.weight.medium,
   },
   macroGroup: {
     flexDirection: 'row',
@@ -119,18 +119,18 @@ const styles = StyleSheet.create({
   macroMarker: {
     width: 16,
     height: 16,
-    borderRadius: 8,
-    backgroundColor: Theme.colors.statusAlert, // Nutzt die Warn-Farbe
+    borderRadius: Theme.radii.full,
+    backgroundColor: Theme.colors.statusAlert, 
     // Ein kleiner Glow-Effekt (iOS)
     shadowColor: Theme.colors.statusAlert,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
+    shadowOpacity: Theme.effects.shadowOpacityFull,
+    shadowRadius: Theme.effects.shadowRadiusMarker,
   },
   iconButton: {
     padding: Theme.spacing.sm,
     // Optional: Eine dezente Umrandung für das Icon
-    borderWidth: 1,
+    borderWidth: Theme.effects.borderWidthThin,
     borderColor: Theme.colors.borderSubtle,
     borderRadius: Theme.radii.input,
   },
@@ -139,13 +139,13 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: Theme.spacing.md,
-    gap: Theme.spacing.sm, // Abstand zwischen Aktien-Karten
+    gap: Theme.spacing.sm, 
   },
   stockItemCard: {
-    backgroundColor: Theme.colors.bgSurface, // Aus image_2.png
+    backgroundColor: Theme.colors.bgSurface, 
     borderRadius: Theme.radii.standard,
     padding: Theme.spacing.md,
-    borderWidth: 1,
+    borderWidth: Theme.effects.borderWidthThin,
     borderColor: Theme.colors.borderSubtle,
   },
   stockRow: {
@@ -154,16 +154,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   stockTicker: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: Theme.typography.size.md,
+    fontWeight: Theme.typography.weight.semibold,
     color: Theme.colors.textPrimary,
-    width: 60, // Feste Breite für Ticker
+    width: 60, 
   },
   sparkline: {
     color: Theme.colors.textSubtle,
-    fontSize: 20,
+    fontSize: Theme.typography.size.xl,
     letterSpacing: -2,
-    flex: 1, // Nimmt verbleibenden Platz ein
+    flex: 1, 
     textAlign: 'center',
   },
   statusRow: {
@@ -173,17 +173,17 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   stockPrice: {
-    fontSize: 14,
+    fontSize: Theme.typography.size.sm,
     color: Theme.colors.textPrimary,
   },
   changePercent: {
-    fontSize: 14,
-    color: Theme.colors.brandPrimary, // Standard ist Blau/Positiv
-    fontWeight: '500',
+    fontSize: Theme.typography.size.sm,
+    color: Theme.colors.brandPrimary, 
+    fontWeight: Theme.typography.weight.medium,
   },
   lastUpdateText: {
     textAlign: 'center',
-    fontSize: 12,
+    fontSize: Theme.typography.size.xs,
     color: Theme.colors.textSubtle,
     marginVertical: Theme.spacing.sm,
   },
