@@ -1,0 +1,28 @@
+{
+  "timestamp": "ISO-ZEITSTEMPEL",
+  "data_provenance": { 
+    "macro_source": "URL_HIER", 
+    "dark_pool_source": "URL_HIER", 
+    "data_freshness": "MINUTEN_SEIT_UPDATE" 
+  },
+  "metrics_validation": {
+    "macro": { 
+      "us10y": ["WERT_AKTUELL", "WERT_5D_AGO", "SOURCE"], 
+      "btc": ["PREIS", "RSI_WEEKLY", "MVRV_Z", "SOURCE"], 
+      "fed": ["WALCL", "TGA", "TREND"] 
+    },
+    "ticker_data": { 
+      "TICKER_ID": { 
+        "price": 0.0, 
+        "dark_pool_volume": "WERT_IN_USD", 
+        "print_level": 0.0, 
+        "source_link": "URL", 
+        "wick_ratio": 0.0 
+      } 
+    }
+  },
+  "master_switch": { "status": "LONG/CASH/VETO", "mode": "DARK_SNIPER_ACTIVE" },
+  "tickers": [
+    { "id": "TICKER_ID", "final_score": 0.0, "action": "SNIPER_BUY_DARK / HOLD", "logic_notes": ["DETAILS"] }
+  ]
+}
