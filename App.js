@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
 import { Theme } from './Theme';
 import SettingsDialog from './components/SettingsDialog';
+import AddAssetDialog from './components/AddAssetDialog';
 import StockItem from './components/StockItem';
 
 // LayoutAnimation für Android aktivieren
@@ -25,6 +26,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function App() {
   const [settingsVisible, setSettingsVisible] = useState(false);
+  const [addDialogVisible, setAddDialogVisible] = useState(false); // Neuer State für Add Dialog
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
@@ -73,10 +75,20 @@ export default function App() {
 
         <Text style={styles.lastUpdateText}>Last update: 5s ago</Text>
 
-        <SettingsDialog visible={settingsVisible} onClose={() => {
-          log.info("Settings geschlossen");
-          setSettingsVisible(false);
-        }} />
+        {/* Floating Action Button für Add Asset */}
+        <TouchableOpacity 
+          style={styles.fab} 
+          onPress={() => setAddDialogVisible(true)}
+        >
+          {fontsLoaded ? (
+            <Ionicons name="add" size={30} color={Theme.colors.textOnPrimary} />
+          ) : (
+            <Text style={{ color: Theme.colors.textOnPrimary, fontSize: 24 }}>+</Text>
+          )}
+        </TouchableOpacity>
+
+        <SettingsDialog visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
+        <AddAssetDialog visible={addDialogVisible} onClose={() => setAddDialogVisible(false)} />
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -130,5 +142,21 @@ const styles = StyleSheet.create({
     fontSize: Theme.typography.size.xs,
     color: Theme.colors.textSubtle,
     marginVertical: Theme.spacing.sm,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: Theme.spacing.xl,
+    right: Theme.spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Theme.colors.brandPrimary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: Theme.colors.shadowDefault,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });
