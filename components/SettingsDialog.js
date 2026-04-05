@@ -1,6 +1,6 @@
 // components/SettingsDialog.js - Der Einstellungs-Dialog als Modal-Komponente
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -13,9 +13,16 @@ import {
 } from 'react-native';
 import { Theme } from '../Theme';
 
-const SettingsDialog = ({ visible, onClose }) => {
+const SettingsDialog = ({ visible, onClose, onSave, currentApiKey }) => {
   const [focusedField, setFocusedField] = useState(null);
   const [apiKey, setApiKey] = useState('');
+
+  // Wenn der Dialog geöffnet wird, setzen wir den Text im Feld auf den aktuellen Key aus der App.js
+  useEffect(() => {
+    if (visible) {
+      setApiKey(currentApiKey || '');
+    }
+  }, [visible, currentApiKey]);
 
   const ThemeTextInput = ({ label, placeholder, ...props }) => {
     const isFocused = focusedField === label;
@@ -51,8 +58,7 @@ const SettingsDialog = ({ visible, onClose }) => {
             
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.buttonPrimary} onPress={() => {
-                log.info("Settings 'Save' geklickt (Key: " + (apiKey ? "***" : "leer") + ")");
-                onClose();
+                if (onSave) onSave({ apiKey });
               }}>
                 <Text style={styles.buttonPrimaryText}>Save</Text>
               </TouchableOpacity>

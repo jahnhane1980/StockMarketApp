@@ -1,6 +1,6 @@
-// components/AddAssetDialog.js - Dialog zum Hinzufügen eines neuen Assets
+// components/AddAssetDialog.js - Dialog zum Hinzufügen / Bearbeiten eines Assets
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -14,14 +14,35 @@ import {
 } from 'react-native';
 import { Theme } from '../Theme';
 
-const AddAssetDialog = ({ visible, onClose, onSave }) => {
+const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
   const [ticker, setTicker] = useState('');
-  const [status, setStatus] = useState('WATCH'); // 'WATCH' oder 'OWNED'
+  const [status, setStatus] = useState('WATCH'); 
   const [amount, setAmount] = useState('');
-  const [type, setType] = useState('A'); // A, B, C, D
-  const [funding, setFunding] = useState('EQUITY'); // EQUITY, DEBT, MIXED
+  const [currency, setCurrency] = useState('USD'); 
+  const [type, setType] = useState('A'); 
+  const [funding, setFunding] = useState('EQUITY'); 
 
-  // Hilfskomponente für auswählbare Buttons (Chips)
+  // Wenn der Dialog geöffnet wird, prüfen wir, ob wir editieren oder neu anlegen
+  useEffect(() => {
+    if (visible) {
+      if (initialAsset) {
+        setTicker(initialAsset.ticker || '');
+        setStatus(initialAsset.status || 'WATCH');
+        setAmount(initialAsset.amount || '');
+        setCurrency(initialAsset.currency || 'USD');
+        setType(initialAsset.type || 'A');
+        setFunding(initialAsset.funding || 'EQUITY');
+      } else {
+        setTicker('');
+        setStatus('WATCH');
+        setAmount('');
+        setCurrency('USD');
+        setType('A');
+        setFunding('EQUITY');
+      }
+    }
+  }, [visible, initialAsset]);
+
   const SelectionChip = ({ label, value, current, onChange }) => {
     const isSelected = current === value;
     return (
@@ -37,42 +58,38 @@ const AddAssetDialog = ({ visible, onClose, onSave }) => {
   };
 
   const handleSave = () => {
-    // Hier übergeben wir später die Daten an die App.js
-    const newAsset = { ticker, status, amount, type, funding };
-    log.info("Neues Asset angelegt: " + JSON.stringify(newAsset));
+    if (!ticker.trim()) return; 
+
+    const assetData = { ticker: ticker.toUpperCase(), status, amount, currency, type, funding };
     
-    // Formular zurücksetzen für das nächste Mal
-    setTicker('');
-    setStatus('WATCH');
-    setAmount('');
-    setType('A');
-    setFunding('EQUITY');
-    
-    onClose();
+    if (onSave) {
+      onSave(assetData);
+    }
   };
+
+  const isEditing = !!initialAsset;
 
   return (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
       <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.dialogContainer}>
-            <Text style={styles.dialogTitle}>Add Asset</Text>
+            <Text style={styles.dialogTitle}>{isEditing ? 'Edit Asset' : 'Add Asset'}</Text>
             
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Ticker Eingabe */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Ticker / Symbol</Text>
                 <TextInput
-                  style={styles.textInput}
+                  style={[styles.textInput, isEditing && styles.textInputDisabled]}
                   placeholder="z.B. AAPL oder BTC"
                   placeholderTextColor={Theme.colors.textSubtle}
                   value={ticker}
                   onChangeText={setTicker}
                   autoCapitalize="characters"
+                  editable={!isEditing} // Beim Bearbeiten darf der Ticker nicht geändert werden
                 />
               </View>
 
-              {/* Status: Watch vs Own */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Status</Text>
                 <View style={styles.chipRow}>
@@ -81,22 +98,30 @@ const AddAssetDialog = ({ visible, onClose, onSave }) => {
                 </View>
               </View>
 
-              {/* Betrag (nur zeigen wenn im Portfolio) */}
               {status === 'OWNED' && (
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Investierter Betrag ($/€)</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="0.00"
-                    placeholderTextColor={Theme.colors.textSubtle}
-                    keyboardType="numeric"
-                    value={amount}
-                    onChangeText={setAmount}
-                  />
-                </View>
+                <>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Investierter Betrag</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="0.00"
+                      placeholderTextColor={Theme.colors.textSubtle}
+                      keyboardType="numeric"
+                      value={amount}
+                      onChangeText={setAmount}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Währung</Text>
+                    <View style={styles.chipRow}>
+                      <SelectionChip label="USD ($)" value="USD" current={currency} onChange={setCurrency} />
+                      <SelectionChip label="EUR (€)" value="EUR" current={currency} onChange={setCurrency} />
+                    </View>
+                  </View>
+                </>
               )}
 
-              {/* Asset Typ */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Typ</Text>
                 <View style={styles.chipRow}>
@@ -109,7 +134,6 @@ const AddAssetDialog = ({ visible, onClose, onSave }) => {
                 </View>
               </View>
 
-              {/* Finanzierung (nur relevant wenn investiert) */}
               {status === 'OWNED' && (
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Finanzierung</Text>
@@ -124,7 +148,7 @@ const AddAssetDialog = ({ visible, onClose, onSave }) => {
             
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.buttonPrimary} onPress={handleSave}>
-                <Text style={styles.buttonPrimaryText}>Add Asset</Text>
+                <Text style={styles.buttonPrimaryText}>Save</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonSecondary} onPress={onClose}>
                 <Text style={styles.buttonSecondaryText}>Cancel</Text>
@@ -141,7 +165,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: Theme.colors.bgOverlay, 
-    justifyContent: 'flex-end', // Dialog rutscht von unten rein
+    justifyContent: 'flex-end', 
   },
   dialogContainer: {
     backgroundColor: Theme.colors.bgMain, 
@@ -150,7 +174,7 @@ const styles = StyleSheet.create({
     borderTopWidth: Theme.effects.borderWidthThin,
     borderColor: Theme.colors.borderSubtle, 
     padding: Theme.spacing.lg,
-    maxHeight: '85%', // Verhindert, dass es den ganzen Bildschirm füllt
+    maxHeight: '85%', 
   },
   dialogTitle: {
     fontSize: Theme.typography.size.xl,
@@ -172,6 +196,10 @@ const styles = StyleSheet.create({
     borderRadius: Theme.radii.input,
     padding: Theme.spacing.sm,
     fontSize: Theme.typography.size.sm,
+  },
+  textInputDisabled: {
+    backgroundColor: Theme.colors.bgSurface,
+    color: Theme.colors.textSubtle,
   },
   chipRow: {
     flexDirection: 'row',

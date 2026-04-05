@@ -8,11 +8,12 @@ import {
   TouchableOpacity,
   LayoutAnimation,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '../Theme';
 
-const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend, fontsLoaded }) => {
+const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend, fontsLoaded, status, onDelete, onEdit }) => {
   const [expanded, setExpanded] = useState(false);
 
   const toggleExpand = () => {
@@ -20,10 +21,22 @@ const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend,
     setExpanded(!expanded);
   };
 
+  const handleLongPress = () => {
+    Alert.alert(
+      `${ticker} Optionen`,
+      "Was möchtest du tun?",
+      [
+        { text: "Abbrechen", style: "cancel" },
+        { text: "Löschen", style: "destructive", onPress: () => onDelete && onDelete(ticker) }
+      ]
+    );
+  };
+
   return (
     <TouchableOpacity 
       style={styles.stockItemCard} 
       onPress={toggleExpand} 
+      onLongPress={handleLongPress}
       activeOpacity={0.7}
     >
       <View style={styles.stockRow}>
@@ -79,9 +92,36 @@ const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend,
           {/* Error Logs */}
           <View style={styles.errorLog}>
             <Text style={styles.errorText}>ERROR: NETWORK CONNECTION TIMEOUT</Text>
-            <Text style={styles.errorText}>ERROR: NETWORK CONNECTION TIMEOUT</Text>
-            <Text style={styles.errorText}>ERROR: EERORS</Text>
           </View>
+
+          {/* Action Bar */}
+          <View style={styles.actionBar}>
+            {/* Edit Button */}
+            <TouchableOpacity style={styles.actionButton} onPress={() => onEdit && onEdit(ticker)}>
+              {fontsLoaded && <Ionicons name="pencil-outline" size={Theme.icons.md} color={Theme.colors.brandPrimary} />}
+              <Text style={[styles.actionText, { color: Theme.colors.brandPrimary }]}>Edit</Text>
+            </TouchableOpacity>
+
+            {/* Context-Button (Wir rufen hier der Einfachheit halber auch onEdit auf, da es den gleichen Dialog öffnet) */}
+            {status === 'WATCH' ? (
+              <TouchableOpacity style={styles.actionButton} onPress={() => onEdit && onEdit(ticker)}>
+                {fontsLoaded && <Ionicons name="cash-outline" size={Theme.icons.md} color={Theme.colors.textPrimary} />}
+                <Text style={styles.actionText}>Invest</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.actionButton} onPress={() => onEdit && onEdit(ticker)}>
+                {fontsLoaded && <Ionicons name="swap-vertical-outline" size={Theme.icons.md} color={Theme.colors.textPrimary} />}
+                <Text style={styles.actionText}>Trade</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Delete Button */}
+            <TouchableOpacity style={styles.actionButton} onPress={() => onDelete && onDelete(ticker)}>
+              {fontsLoaded && <Ionicons name="trash-outline" size={Theme.icons.md} color={Theme.colors.statusCritical} />}
+              <Text style={[styles.actionText, { color: Theme.colors.statusCritical }]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+
         </View>
       )}
     </TouchableOpacity>
@@ -143,7 +183,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   errorLog: {
-    marginTop: Theme.spacing.sm,
+    marginBottom: Theme.spacing.md,
   },
   errorText: {
     fontSize: 10,
@@ -151,7 +191,26 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     marginBottom: 2,
   },
+  actionBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: Theme.effects.borderWidthThin,
+    borderColor: Theme.colors.borderSubtle,
+    paddingTop: Theme.spacing.md,
+    marginTop: Theme.spacing.sm,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Theme.spacing.xs,
+    paddingVertical: Theme.spacing.xs,
+    paddingHorizontal: Theme.spacing.sm,
+  },
+  actionText: {
+    fontSize: Theme.typography.size.xs,
+    color: Theme.colors.textPrimary,
+    fontWeight: Theme.typography.weight.medium,
+  }
 });
 
-// React.memo verhindert Neuladen der Komponente, wenn sich ihre Props nicht ändern
 export default React.memo(StockItem);
