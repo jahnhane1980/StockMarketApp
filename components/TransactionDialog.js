@@ -1,4 +1,4 @@
-// components/TransactionDialog.js - Erfassung von Käufen und Verkäufen
+// components/TransactionDialog.js - Refactored Cleanup Version
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -12,34 +12,34 @@ import {
   Keyboard,
   ScrollView,
 } from 'react-native';
-import { Theme } from '../Theme'; //
+import { Theme } from '../Theme';
+import { ACTIONS, CURRENCIES, FUNDING_SOURCES } from '../Constants';
 
 const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
-  const [action, setAction] = useState('BUY'); 
+  const [action, setAction] = useState(ACTIONS.BUY); 
   const [totalFiat, setTotalFiat] = useState('');
   const [pricePerUnit, setPricePerUnit] = useState('');
-  const [currency, setCurrency] = useState('EUR'); 
-  const [funding, setFunding] = useState('EQUITY'); 
+  const [currency, setCurrency] = useState(CURRENCIES.EUR); 
+  const [funding, setFunding] = useState(FUNDING_SOURCES.EQUITY); 
 
   useEffect(() => {
     if (visible) {
       setTotalFiat('');
       setPricePerUnit('');
+      setAction(ACTIONS.BUY);
     }
   }, [visible]);
 
   const handleSave = () => {
     if (!totalFiat || !pricePerUnit) return;
     
-    const tx = {
+    onSave(ticker, {
       action,
       totalFiat: parseFloat(totalFiat.replace(',', '.')),
       pricePerUnit: parseFloat(pricePerUnit.replace(',', '.')),
       currency,
-      funding: action === 'BUY' ? funding : null
-    };
-    
-    onSave(ticker, tx);
+      funding: action === ACTIONS.BUY ? funding : null
+    });
   };
 
   return (
@@ -47,23 +47,23 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
       <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.dialogContainer}>
-            <Text style={styles.dialogTitle}>{ticker}: Transaktion</Text>
+            <Text style={styles.dialogTitle}>{ticker}: Transaktion erfassen</Text>
             
-            <ScrollView>
+            <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Typ</Text>
+                <Text style={styles.inputLabel}>Aktion</Text>
                 <View style={styles.chipRow}>
                   <TouchableOpacity 
-                    style={[styles.chip, action === 'BUY' && {backgroundColor: Theme.colors.brandPrimary}]} //
-                    onPress={() => setAction('BUY')}
+                    style={[styles.chip, action === ACTIONS.BUY && styles.chipSelectedBuy]}
+                    onPress={() => setAction(ACTIONS.BUY)}
                   >
-                    <Text style={{color: action === 'BUY' ? 'white' : Theme.colors.textSubtle}}>Kauf</Text>
+                    <Text style={[styles.chipText, action === ACTIONS.BUY && styles.chipTextActive]}>Kauf</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    style={[styles.chip, action === 'SELL' && {backgroundColor: Theme.colors.statusCritical}]} //
-                    onPress={() => setAction('SELL')}
+                    style={[styles.chip, action === ACTIONS.SELL && styles.chipSelectedSell]}
+                    onPress={() => setAction(ACTIONS.SELL)}
                   >
-                    <Text style={{color: action === 'SELL' ? 'white' : Theme.colors.textSubtle}}>Verkauf</Text>
+                    <Text style={[styles.chipText, action === ACTIONS.SELL && styles.chipTextActive]}>Verkauf</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -75,32 +75,38 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
                   keyboardType="decimal-pad" 
                   value={totalFiat} 
                   onChangeText={setTotalFiat} 
-                  placeholder="z.B. 5000"
+                  placeholder="0.00"
                   placeholderTextColor={Theme.colors.textSubtle} 
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Preis pro Stück</Text>
+                <Text style={styles.inputLabel}>Stückpreis / Kurs</Text>
                 <TextInput 
                   style={styles.textInput} 
                   keyboardType="decimal-pad" 
                   value={pricePerUnit} 
                   onChangeText={setPricePerUnit} 
-                  placeholder="z.B. 65000"
+                  placeholder="0.00"
                   placeholderTextColor={Theme.colors.textSubtle} 
                 />
               </View>
 
-              {action === 'BUY' && (
+              {action === ACTIONS.BUY && (
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Finanzierung</Text>
                   <View style={styles.chipRow}>
-                    <TouchableOpacity style={[styles.chip, funding === 'EQUITY' && styles.chipSelected]} onPress={() => setFunding('EQUITY')}>
-                      <Text style={styles.chipText}>EK</Text>
+                    <TouchableOpacity 
+                      style={[styles.chip, funding === FUNDING_SOURCES.EQUITY && styles.chipSelected]} 
+                      onPress={() => setFunding(FUNDING_SOURCES.EQUITY)}
+                    >
+                      <Text style={[styles.chipText, funding === FUNDING_SOURCES.EQUITY && styles.chipTextActive]}>EK</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.chip, funding === 'DEBT' && styles.chipSelected]} onPress={() => setFunding('DEBT')}>
-                      <Text style={styles.chipText}>FK</Text>
+                    <TouchableOpacity 
+                      style={[styles.chip, funding === FUNDING_SOURCES.DEBT && styles.chipSelected]} 
+                      onPress={() => setFunding(FUNDING_SOURCES.DEBT)}
+                    >
+                      <Text style={[styles.chipText, funding === FUNDING_SOURCES.DEBT && styles.chipTextActive]}>FK</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -108,10 +114,10 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
             </ScrollView>
 
             <TouchableOpacity 
-              style={[styles.buttonPrimary, action === 'SELL' && {backgroundColor: Theme.colors.statusCritical}]} 
+              style={[styles.buttonPrimary, action === ACTIONS.SELL && { backgroundColor: Theme.colors.statusCritical }]} 
               onPress={handleSave}
             >
-              <Text style={styles.buttonPrimaryText}>Speichern</Text>
+              <Text style={styles.buttonPrimaryText}>Transaktion speichern</Text>
             </TouchableOpacity>
           </View>
         </TouchableWithoutFeedback>
@@ -121,18 +127,53 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: { flex: 1, backgroundColor: Theme.colors.bgOverlay, justifyContent: 'center', alignItems: 'center' }, //
-  dialogContainer: { width: '85%', backgroundColor: Theme.colors.bgMain, borderRadius: Theme.radii.dialog, padding: Theme.spacing.lg }, //
-  dialogTitle: { color: Theme.colors.textPrimary, fontSize: Theme.typography.size.lg, marginBottom: Theme.spacing.md, textAlign: 'center' }, //
+  modalOverlay: { flex: 1, backgroundColor: Theme.colors.bgOverlay, justifyContent: 'center', alignItems: 'center' },
+  dialogContainer: { 
+    width: '90%', 
+    backgroundColor: Theme.colors.bgMain, 
+    borderRadius: Theme.radii.dialog, 
+    padding: Theme.spacing.lg,
+    borderWidth: Theme.effects.borderWidthThin,
+    borderColor: Theme.colors.borderSubtle
+  },
+  dialogTitle: { 
+    color: Theme.colors.textPrimary, 
+    fontSize: Theme.typography.size.lg, 
+    fontWeight: Theme.typography.weight.bold, 
+    marginBottom: Theme.spacing.md, 
+    textAlign: 'center' 
+  },
   inputGroup: { marginBottom: Theme.spacing.md },
-  inputLabel: { color: Theme.colors.textSubtle, fontSize: 12, marginBottom: 4 }, //
-  textInput: { color: Theme.colors.textPrimary, borderBottomWidth: 1, borderColor: Theme.colors.borderSubtle, padding: 8 }, //
-  chipRow: { flexDirection: 'row', gap: 10 },
-  chip: { flex: 1, padding: 10, borderRadius: 4, alignItems: 'center', borderWidth: 1, borderColor: Theme.colors.borderSubtle }, //
-  chipSelected: { backgroundColor: Theme.colors.brandPrimary, borderColor: Theme.colors.brandPrimary }, //
-  chipText: { color: 'white', fontSize: 12 },
-  buttonPrimary: { backgroundColor: Theme.colors.brandPrimary, padding: 15, borderRadius: 6, alignItems: 'center', marginTop: 10 }, //
-  buttonPrimaryText: { color: 'white', fontWeight: 'bold' }
+  inputLabel: { color: Theme.colors.textSubtle, fontSize: Theme.typography.size.sm, marginBottom: Theme.spacing.xs },
+  textInput: { 
+    color: Theme.colors.textPrimary, 
+    borderBottomWidth: Theme.effects.borderWidthThin, 
+    borderColor: Theme.colors.borderSubtle, 
+    padding: Theme.spacing.sm,
+    fontSize: Theme.typography.size.md
+  },
+  chipRow: { flexDirection: 'row', gap: Theme.spacing.sm },
+  chip: { 
+    flex: 1, 
+    padding: Theme.spacing.sm, 
+    borderRadius: Theme.radii.input, 
+    alignItems: 'center', 
+    borderWidth: Theme.effects.borderWidthThin, 
+    borderColor: Theme.colors.borderSubtle 
+  },
+  chipSelected: { backgroundColor: Theme.colors.brandPrimary, borderColor: Theme.colors.brandPrimary },
+  chipSelectedBuy: { backgroundColor: Theme.colors.brandPrimary, borderColor: Theme.colors.brandPrimary },
+  chipSelectedSell: { backgroundColor: Theme.colors.statusCritical, borderColor: Theme.colors.statusCritical },
+  chipText: { color: Theme.colors.textSubtle, fontSize: Theme.typography.size.sm },
+  chipTextActive: { color: Theme.colors.textOnPrimary },
+  buttonPrimary: { 
+    backgroundColor: Theme.colors.brandPrimary, 
+    padding: Theme.spacing.md, 
+    borderRadius: Theme.radii.standard, 
+    alignItems: 'center', 
+    marginTop: Theme.spacing.md 
+  },
+  buttonPrimaryText: { color: Theme.colors.textOnPrimary, fontWeight: Theme.typography.weight.bold }
 });
 
 export default TransactionDialog;

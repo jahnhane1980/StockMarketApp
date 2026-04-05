@@ -1,4 +1,4 @@
-// Theme.js - Unsere zentralen Design Tokens (Variablen)
+// Theme.js - Unsere zentralen Design Tokens
 
 export const Theme = {
   colors: {
@@ -14,6 +14,7 @@ export const Theme = {
     inputFocus: '#808080',   
     statusCritical: '#BC3F3C', 
     statusAlert: '#CC7832',   
+    statusSuccess: '#629755', // Neu für positive Trends
   },
   radii: {
     standard: 6,   
@@ -28,13 +29,22 @@ export const Theme = {
     lg: 24,
     xl: 32,
   },
+  layout: {
+    fabBottom: 30,
+    fabRight: 20,
+    fabSize: 56,
+    toolbarHeight: 60,
+    tickerWidth: 80,
+    priceMinWidth: 60,
+    dialogMaxHeight: '85%',
+  },
   typography: {
     size: {
-      xs: 12,
-      sm: 14,
-      md: 16,
-      lg: 18,
-      xl: 20,
+      xs: 10, // Für Detail-Logs
+      sm: 12, // Für Labels
+      md: 14, // Standard
+      lg: 18, // Headlines
+      xl: 22, // Dialog Titel
     },
     weight: {
       normal: '400',
@@ -46,6 +56,7 @@ export const Theme = {
   effects: {
     shadowOpacityFull: 1,
     shadowOpacityDialog: 0.3,
+    shadowOpacityFab: 0.4,
     shadowRadiusMarker: 6,
     shadowRadiusDialog: 10,
     borderWidthThin: 1,
@@ -53,5 +64,6 @@ export const Theme = {
   icons: {
     sm: 16,
     md: 24,
+    lg: 30,
   }
 };

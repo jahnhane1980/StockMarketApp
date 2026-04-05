@@ -1,4 +1,4 @@
-// App.js - Der Hauptbildschirm
+// App.js - Der Hauptbildschirm (Refactored)
 
 import React, { useState, useEffect } from 'react';
 import { StatusBar, StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, UIManager } from 'react-native';
@@ -6,6 +6,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons'; 
 import * as Font from 'expo-font';
 import { Theme } from './Theme';
+import { ASSET_TYPES } from './Constants';
 import SettingsDialog from './components/SettingsDialog';
 import AddAssetDialog from './components/AddAssetDialog';
 import TransactionDialog from './components/TransactionDialog';
@@ -41,22 +42,10 @@ export default function App() {
     setAssets([...data]);
   };
 
-  const handleSaveAsset = async (asset) => {
-    await AssetRepository.save(asset);
-    await refreshList();
-    setAddDialogVisible(false);
-  };
-
-  const handleSaveTx = async (ticker, tx) => {
-    await AssetRepository.addTransaction(ticker, tx);
-    await refreshList();
-    setTxDialogVisible(false);
-  };
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle="light-content" backgroundColor={Theme.colors.bgMain} />
         <View style={styles.toolbar}>
           <Text style={styles.toolbarText}>Macro</Text>
           <TouchableOpacity onPress={() => setSettingsVisible(true)}>
@@ -71,6 +60,8 @@ export default function App() {
               {...asset} 
               price="..." 
               changePercent="..." 
+              isWarning={asset.type === ASSET_TYPES.C}
+              isCritical={asset.type === ASSET_TYPES.D}
               fontsLoaded={fontsLoaded}
               onDelete={async (t) => { await AssetRepository.remove(t); refreshList(); }}
               onEdit={(t) => { setEditingAsset(assets.find(a => a.ticker === t)); setAddDialogVisible(true); }}
@@ -80,12 +71,12 @@ export default function App() {
         </ScrollView>
 
         <TouchableOpacity style={styles.fab} onPress={() => { setEditingAsset(null); setAddDialogVisible(true); }}>
-          <Ionicons name="add" size={30} color={Theme.colors.textOnPrimary} />
+          <Ionicons name="add" size={Theme.icons.lg} color={Theme.colors.textOnPrimary} />
         </TouchableOpacity>
 
         <SettingsDialog visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
-        <AddAssetDialog visible={addDialogVisible} initialAsset={editingAsset} onSave={handleSaveAsset} onClose={() => setAddDialogVisible(false)} />
-        <TransactionDialog visible={txDialogVisible} ticker={activeTicker} onSave={handleSaveTx} onClose={() => setTxDialogVisible(false)} />
+        <AddAssetDialog visible={addDialogVisible} initialAsset={editingAsset} onSave={async (a) => { await AssetRepository.save(a); refreshList(); setAddDialogVisible(false); }} onClose={() => setAddDialogVisible(false)} />
+        <TransactionDialog visible={txDialogVisible} ticker={activeTicker} onSave={async (t, tx) => { await AssetRepository.addTransaction(t, tx); refreshList(); setTxDialogVisible(false); }} onClose={() => setTxDialogVisible(false)} />
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -93,8 +84,31 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Theme.colors.bgMain },
-  toolbar: { height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Theme.spacing.md, borderBottomWidth: 1, borderColor: Theme.colors.borderSubtle },
-  toolbarText: { color: Theme.colors.textPrimary, fontSize: Theme.typography.size.lg },
+  toolbar: { 
+    height: Theme.layout.toolbarHeight, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: Theme.spacing.md, 
+    borderBottomWidth: Theme.effects.borderWidthThin, 
+    borderColor: Theme.colors.borderSubtle 
+  },
+  toolbarText: { color: Theme.colors.textPrimary, fontSize: Theme.typography.size.lg, fontWeight: Theme.typography.weight.medium },
   listContent: { padding: Theme.spacing.md },
-  fab: { position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: Theme.colors.brandPrimary, justifyContent: 'center', alignItems: 'center', elevation: 5 }
+  fab: { 
+    position: 'absolute', 
+    bottom: Theme.layout.fabBottom, 
+    right: Theme.layout.fabRight, 
+    width: Theme.layout.fabSize, 
+    height: Theme.layout.fabSize, 
+    borderRadius: Theme.layout.fabSize / 2, 
+    backgroundColor: Theme.colors.brandPrimary, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    elevation: 5,
+    shadowColor: Theme.colors.shadowDefault,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: Theme.effects.shadowOpacityFab,
+    shadowRadius: 4,
+  }
 });
