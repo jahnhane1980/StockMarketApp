@@ -1,4 +1,4 @@
-// App.js - Der Hauptbildschirm (Refactored)
+// App.js - Der Hauptbildschirm (Refactored & Synchronized)
 
 import React, { useState, useEffect } from 'react';
 import { StatusBar, StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, UIManager } from 'react-native';
@@ -29,23 +29,48 @@ export default function App() {
 
   useEffect(() => {
     async function load() {
-      await Font.loadAsync(Ionicons.font);
-      setFontsLoaded(true);
-      const data = await AssetRepository.getAll();
-      setAssets(data);
+      try {
+        await Font.loadAsync(Ionicons.font);
+        setFontsLoaded(true);
+        const data = await AssetRepository.getAll();
+        setAssets(data);
+      } catch (e) {
+        if (global.log) log.error("Initialisierungsfehler", e);
+      }
     }
     load();
   }, []);
 
   const refreshList = async () => {
     const data = await AssetRepository.getAll();
-    setAssets([...data]);
+    setAssets([...data]); // Spread zwingt React zum Re-Render der Liste
+  };
+
+  const handleSaveAsset = async (asset) => {
+    try {
+      await AssetRepository.save(asset);
+      await refreshList();
+      setAddDialogVisible(false);
+    } catch (e) {
+      if (global.log) log.error("Fehler beim Speichern des Assets", e);
+    }
+  };
+
+  const handleSaveTx = async (ticker, tx) => {
+    try {
+      await AssetRepository.addTransaction(ticker, tx);
+      await refreshList();
+      setTxDialogVisible(false);
+    } catch (e) {
+      if (global.log) log.error("Fehler beim Speichern der Transaktion", e);
+    }
   };
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor={Theme.colors.bgMain} />
+        
         <View style={styles.toolbar}>
           <Text style={styles.toolbarText}>Macro</Text>
           <TouchableOpacity onPress={() => setSettingsVisible(true)}>
@@ -54,29 +79,66 @@ export default function App() {
         </View>
 
         <ScrollView contentContainerStyle={styles.listContent}>
-          {assets.map((asset) => (
-            <StockItem 
-              key={asset.ticker} 
-              {...asset} 
-              price="..." 
-              changePercent="..." 
-              isWarning={asset.type === ASSET_TYPES.C}
-              isCritical={asset.type === ASSET_TYPES.D}
-              fontsLoaded={fontsLoaded}
-              onDelete={async (t) => { await AssetRepository.remove(t); refreshList(); }}
-              onEdit={(t) => { setEditingAsset(assets.find(a => a.ticker === t)); setAddDialogVisible(true); }}
-              onInvest={(t) => { setActiveTicker(t); setTxDialogVisible(true); }}
-            />
-          ))}
+          {assets.length === 0 ? (
+            <Text style={styles.emptyText}>Keine Assets vorhanden. Nutzen Sie das '+'.</Text>
+          ) : (
+            assets.map((asset) => (
+              <StockItem 
+                key={asset.ticker} 
+                ticker={asset.ticker}
+                status={asset.status}
+                type={asset.type}
+                transactions={asset.transactions || []} // Explizite Übergabe des Arrays
+                price="..." 
+                changePercent="..." 
+                isWarning={asset.type === ASSET_TYPES.C}
+                isCritical={asset.type === ASSET_TYPES.D}
+                fontsLoaded={fontsLoaded}
+                onDelete={async (t) => { 
+                  await AssetRepository.remove(t); 
+                  await refreshList(); 
+                }}
+                onEdit={(t) => { 
+                  setEditingAsset(assets.find(a => a.ticker === t)); 
+                  setAddDialogVisible(true); 
+                }}
+                onInvest={(t) => { 
+                  setActiveTicker(t); 
+                  setTxDialogVisible(true); 
+                }}
+              />
+            ))
+          )}
         </ScrollView>
 
-        <TouchableOpacity style={styles.fab} onPress={() => { setEditingAsset(null); setAddDialogVisible(true); }}>
+        <TouchableOpacity 
+          style={styles.fab} 
+          onPress={() => { 
+            setEditingAsset(null); 
+            setAddDialogVisible(true); 
+          }}
+        >
           <Ionicons name="add" size={Theme.icons.lg} color={Theme.colors.textOnPrimary} />
         </TouchableOpacity>
 
-        <SettingsDialog visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
-        <AddAssetDialog visible={addDialogVisible} initialAsset={editingAsset} onSave={async (a) => { await AssetRepository.save(a); refreshList(); setAddDialogVisible(false); }} onClose={() => setAddDialogVisible(false)} />
-        <TransactionDialog visible={txDialogVisible} ticker={activeTicker} onSave={async (t, tx) => { await AssetRepository.addTransaction(t, tx); refreshList(); setTxDialogVisible(false); }} onClose={() => setTxDialogVisible(false)} />
+        <SettingsDialog 
+          visible={settingsVisible} 
+          onClose={() => setSettingsVisible(false)} 
+        />
+        
+        <AddAssetDialog 
+          visible={addDialogVisible} 
+          initialAsset={editingAsset} 
+          onSave={handleSaveAsset} 
+          onClose={() => setAddDialogVisible(false)} 
+        />
+        
+        <TransactionDialog 
+          visible={txDialogVisible} 
+          ticker={activeTicker} 
+          onSave={handleSaveTx} 
+          onClose={() => setTxDialogVisible(false)} 
+        />
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -93,8 +155,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: Theme.effects.borderWidthThin, 
     borderColor: Theme.colors.borderSubtle 
   },
-  toolbarText: { color: Theme.colors.textPrimary, fontSize: Theme.typography.size.lg, fontWeight: Theme.typography.weight.medium },
+  toolbarText: { 
+    color: Theme.colors.textPrimary, 
+    fontSize: Theme.typography.size.lg, 
+    fontWeight: Theme.typography.weight.medium 
+  },
   listContent: { padding: Theme.spacing.md },
+  emptyText: {
+    color: Theme.colors.textSubtle,
+    textAlign: 'center',
+    marginTop: Theme.spacing.xl,
+    fontSize: Theme.typography.size.md
+  },
   fab: { 
     position: 'absolute', 
     bottom: Theme.layout.fabBottom, 
