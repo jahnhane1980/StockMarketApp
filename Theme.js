@@ -14,7 +14,7 @@ export const Theme = {
     inputFocus: '#808080',   
     statusCritical: '#BC3F3C', 
     statusAlert: '#CC7832',   
-    statusSuccess: '#629755', // Neu für positive Trends
+    statusSuccess: '#629755', 
   },
   radii: {
     standard: 6,   
@@ -37,14 +37,15 @@ export const Theme = {
     tickerWidth: 80,
     priceMinWidth: 60,
     dialogMaxHeight: '85%',
+    iconButtonSize: 40,
   },
   typography: {
     size: {
-      xs: 10, // Für Detail-Logs
-      sm: 12, // Für Labels
-      md: 14, // Standard
-      lg: 18, // Headlines
-      xl: 22, // Dialog Titel
+      xs: 12, 
+      sm: 14, 
+      md: 16, 
+      lg: 18, 
+      xl: 22, 
     },
     weight: {
       normal: '400',

@@ -1,4 +1,4 @@
-// components/AddAssetDialog.js - Refactored Cleanup Version
+// components/AddAssetDialog.js - Dialog für Asset-Stammdaten (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -23,10 +23,12 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
   useEffect(() => {
     if (visible) {
       if (initialAsset) {
+        if (global.log) log.info(`AddAssetDialog: Bearbeite Asset ${initialAsset.ticker}`);
         setTicker(initialAsset.ticker || '');
         setStatus(initialAsset.status || ASSET_STATUS.WATCH);
         setType(initialAsset.type || ASSET_TYPES.A);
       } else {
+        if (global.log) log.info("AddAssetDialog: Neues Asset anlegen");
         setTicker('');
         setStatus(ASSET_STATUS.WATCH);
         setType(ASSET_TYPES.A);
@@ -49,12 +51,20 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
   };
 
   const handleSave = () => {
-    if (!ticker.trim()) return; 
-    onSave({ 
+    if (!ticker.trim()) {
+      if (global.log) log.warn("AddAssetDialog: Speicher-Versuch ohne Ticker abgebrochen.");
+      return; 
+    }
+
+    const assetData = { 
       ticker: ticker.toUpperCase(), 
       status, 
       type 
-    });
+    };
+    
+    if (onSave) {
+      onSave(assetData);
+    }
   };
 
   const isEditing = !!initialAsset;
@@ -65,7 +75,7 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.dialogContainer}>
             <Text style={styles.dialogTitle}>
-              {isEditing ? 'Basisdaten bearbeiten' : 'Neues Asset'}
+              {isEditing ? 'Basisdaten bearbeiten' : 'Neues Asset hinzufügen'}
             </Text>
             
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -73,7 +83,7 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
                 <Text style={styles.inputLabel}>Ticker / Symbol</Text>
                 <TextInput
                   style={[styles.textInput, isEditing && styles.textInputDisabled]}
-                  placeholder="z.B. BTC"
+                  placeholder="z.B. BTC oder AAPL"
                   placeholderTextColor={Theme.colors.textSubtle}
                   value={ticker}
                   onChangeText={setTicker}
@@ -105,7 +115,7 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
             
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.buttonPrimary} onPress={handleSave}>
-                <Text style={styles.buttonPrimaryText}>Speichern</Text>
+                <Text style={styles.buttonPrimaryText}>Asset speichern</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonSecondary} onPress={onClose}>
                 <Text style={styles.buttonSecondaryText}>Abbrechen</Text>
@@ -119,7 +129,11 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: { flex: 1, backgroundColor: Theme.colors.bgOverlay, justifyContent: 'flex-end' },
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: Theme.colors.bgOverlay, 
+    justifyContent: 'flex-end' 
+  },
   dialogContainer: { 
     backgroundColor: Theme.colors.bgMain, 
     borderTopLeftRadius: Theme.radii.dialog, 
