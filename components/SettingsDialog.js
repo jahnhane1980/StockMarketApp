@@ -1,4 +1,4 @@
-// SettingsDialog.js - Der Einstellungs-Dialog als Modal-Komponente
+// components/SettingsDialog.js - Der Einstellungs-Dialog als Modal-Komponente
 
 import React, { useState } from 'react';
 import {
@@ -15,6 +15,7 @@ import { Theme } from '../Theme';
 
 const SettingsDialog = ({ visible, onClose }) => {
   const [focusedField, setFocusedField] = useState(null);
+  const [apiKey, setApiKey] = useState('');
 
   const ThemeTextInput = ({ label, placeholder, ...props }) => {
     const isFocused = focusedField === label;
@@ -39,12 +40,20 @@ const SettingsDialog = ({ visible, onClose }) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.dialogContainer}>
             <Text style={styles.dialogTitle}>Settings</Text>
-            <ThemeTextInput label="Macro Name" placeholder="Macro" autoFocus={true} />
-            <ThemeTextInput label="API Endpoint" placeholder="https://www.api.endpoint..." />
-            <ThemeTextInput label="Timeout (ms)" placeholder="1000" keyboardType="numeric" />
-            <ThemeTextInput label="Data Refresh (s)" placeholder="2" keyboardType="numeric" />
+            
+            <ThemeTextInput 
+              label="Google API Key" 
+              placeholder="AIzaSy..." 
+              autoFocus={true} 
+              value={apiKey}
+              onChangeText={setApiKey}
+            />
+            
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonPrimary} onPress={onClose}>
+              <TouchableOpacity style={styles.buttonPrimary} onPress={() => {
+                log.info("Settings 'Save' geklickt (Key: " + (apiKey ? "***" : "leer") + ")");
+                onClose();
+              }}>
                 <Text style={styles.buttonPrimaryText}>Save</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonSecondary} onPress={onClose}>

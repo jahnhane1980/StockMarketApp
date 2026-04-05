@@ -6,4 +6,5 @@ export const Config = {
     KEY: "",
   },
   TEST: true, // Das Flag zur Steuerung von Mocks/Factory
+  ADMIN_EMAIL: "jahnhane@gmail.com", // Für den Log-Versand
 }
