@@ -125,7 +125,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: Theme.radii.dialog, 
     borderTopRightRadius: Theme.radii.dialog, 
     padding: Theme.spacing.lg, 
-    maxHeight: Theme.layout.dialogMaxHeight 
+    maxHeight: Theme.layout.dialogMaxHeight,
+    borderTopWidth: Theme.effects.borderWidthThin,
+    borderColor: Theme.colors.borderSubtle
   },
   dialogTitle: { 
     fontSize: Theme.typography.size.xl, 
