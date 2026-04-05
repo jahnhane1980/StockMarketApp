@@ -1,7 +1,8 @@
 import { registerRootComponent } from 'expo';
-import App from './App'; // Deine normale App.js
+import App from './App'; 
 
-// Hier kannst du später deine Log-Konfiguration 
-// oder Factory-Klassen einfügen.
-
+// Wichtig: Die Komponente registrieren...
 registerRootComponent(App);
+
+// ...UND als default exportieren
+export default App;

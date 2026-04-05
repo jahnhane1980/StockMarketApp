@@ -1,28 +1,154 @@
 {
-  "timestamp": "ISO-ZEITSTEMPEL",
-  "data_provenance": { 
-    "macro_source": "URL_HIER", 
-    "dark_pool_source": "URL_HIER", 
-    "data_freshness": "MINUTEN_SEIT_UPDATE" 
+  "timestamp": "2026-04-02T16:00:00Z",
+  "action_summary": {
+    "total_cash_to_deploy": "80000.00",
+    "debt_repayment_required": "0.00",
+    "net_liquidity_change": "-6500.00",
+    "global_ui_score": 7.5,
+    "urgency": "HIGH (T1/T2 Strikes aktiv zur initialen Portfolio-Skalierung)"
+  },
+  "debt_metrics": {
+    "accrued_interest": "0.00",
+    "principal_safety_status": "SECURE"
+  },
+  "master_switch": {
+    "status": "LONG",
+    "mode": "DEBT_ARCHITECT_V32_ACTIVE"
+  },
+  "cycling_navigator": {
+    "current_phase": "ACCUMULATION",
+    "recommendation": "ROTATE_TO_GOLD_AND_VALUE",
+    "logic": "VIX bei 23.87, moderater Makro-Stress (Global UI 7.5). Gold-Stress-Veto inaktiv. Typ-D Divergenz-Warnung bei Gold-Minern erkannt."
   },
   "metrics_validation": {
-    "macro": { 
-      "us10y": ["WERT_AKTUELL", "WERT_5D_AGO", "SOURCE"], 
-      "btc": ["PREIS", "RSI_WEEKLY", "MVRV_Z", "SOURCE"], 
-      "fed": ["WALCL", "TGA", "TREND"] 
+    "macro": {
+      "vix_state": "23.87",
+      "real_yield": "1.9%",
+      "gold_stress": "INACTIVE"
     },
-    "ticker_data": { 
-      "TICKER_ID": { 
-        "price": 0.0, 
-        "dark_pool_volume": "WERT_IN_USD", 
-        "print_level": 0.0, 
-        "source_link": "URL", 
-        "wick_ratio": 0.0 
-      } 
+    "ticker_data": {
+      "NVDA": { "rsi_2": 24.5, "dist_to_sma": "+5.2%" },
+      "PLTR": { "rsi_2": 8.0, "dist_to_sma": "-12.0%" },
+      "NVTS": { "rsi_2": 45.0, "dist_to_sma": "-25.0%" },
+      "SOFI": { "rsi_2": 50.0, "dist_to_sma": "-18.0%" },
+      "BTC": { "rsi_2": 9.5, "mvrv_z_score": 1.2 },
+      "GOLD": { "rsi_2": 15.0, "bb_3sd_breach": true },
+      "MARA": { "rsi_2": 8.5, "btc_price": 57934, "mining_cost_est": 44000 },
+      "AUCO": { "rsi_2": 32.0, "gold_price": 2350, "aisc_est": 1550 }
     }
   },
-  "master_switch": { "status": "LONG/CASH/VETO", "mode": "DARK_SNIPER_ACTIVE" },
   "tickers": [
-    { "id": "TICKER_ID", "final_score": 0.0, "action": "SNIPER_BUY_DARK / HOLD", "logic_notes": ["DETAILS"] }
+    {
+      "id": "NVDA",
+      "action": "STRIKE_T2",
+      "ui_score": 3.5,
+      "execution": {
+        "buy_amount": "2000.00",
+        "sell_amount": "0",
+        "target_pos_size": "2000.00",
+        "funding_source": "EQUITY"
+      },
+      "logic_notes": [
+        "Typ B: Preis < BB_3SD. Initiale Tranche 2 (20% von 10.000 USD) ausgeführt."
+      ]
+    },
+    {
+      "id": "PLTR",
+      "action": "STRIKE_T1",
+      "ui_score": 4.0,
+      "execution": {
+        "buy_amount": "1000.00",
+        "sell_amount": "0",
+        "target_pos_size": "1000.00",
+        "funding_source": "EQUITY"
+      },
+      "logic_notes": [
+        "Typ A: RSI_2d < 10. Initiale Tranche 1 (10% von 10.000 USD) zum Positionsaufbau ausgeführt."
+      ]
+    },
+    {
+      "id": "NVTS",
+      "action": "HOLD",
+      "ui_score": 5.0,
+      "execution": {
+        "buy_amount": "0",
+        "sell_amount": "0",
+        "target_pos_size": "0",
+        "funding_source": "EQUITY"
+      },
+      "logic_notes": [
+        "Typ A: Keine statistischen RSI/BB-Extrema erreicht (Slow Bleed)."
+      ]
+    },
+    {
+      "id": "SOFI",
+      "action": "HOLD",
+      "ui_score": 5.0,
+      "execution": {
+        "buy_amount": "0",
+        "sell_amount": "0",
+        "target_pos_size": "0",
+        "funding_source": "EQUITY"
+      },
+      "logic_notes": [
+        "Typ A: AVWAP-Reclaim nicht bestätigt."
+      ]
+    },
+    {
+      "id": "BTC",
+      "action": "STRIKE_T1",
+      "ui_score": 4.0,
+      "execution": {
+        "buy_amount": "1000.00",
+        "sell_amount": "0",
+        "target_pos_size": "1000.00",
+        "funding_source": "EQUITY"
+      },
+      "logic_notes": [
+        "Typ C: MVRV Z-Score in Value-Zone. Initiale Tranche 1 (10%) getriggert."
+      ]
+    },
+    {
+      "id": "GOLD",
+      "action": "STRIKE_T2",
+      "ui_score": 3.0,
+      "execution": {
+        "buy_amount": "2000.00",
+        "sell_amount": "0",
+        "target_pos_size": "2000.00",
+        "funding_source": "EQUITY"
+      },
+      "logic_notes": [
+        "Typ C: Preis berührt BB_3SD_Lower. Tranche 2 (20%) ausgeführt."
+      ]
+    },
+    {
+      "id": "MARA",
+      "action": "STRIKE_T1",
+      "ui_score": 4.0,
+      "execution": {
+        "buy_amount": "500.00",
+        "sell_amount": "0",
+        "target_pos_size": "500.00",
+        "funding_source": "EQUITY"
+      },
+      "logic_notes": [
+        "Typ D: Profit-Check bestanden (BTC 57.934 > 44.000 * 1.25). RSI_2d < 10. Defensive Tranche 1 (5% von 10.000 USD) getriggert."
+      ]
+    },
+    {
+      "id": "AUCO",
+      "action": "VETO",
+      "ui_score": 8.5,
+      "execution": {
+        "buy_amount": "0",
+        "sell_amount": "0",
+        "target_pos_size": "0",
+        "funding_source": "EQUITY"
+      },
+      "logic_notes": [
+        "Typ D: VETO_DIVERGENCE gegriffen! Underlying (Gold) erholt sich an BB_3SD, aber Miner-ETF fällt weiter ab (RSI 32). Verdacht auf strukturelle Schwäche im Sektor. Kauf blockiert."
+      ]
+    }
   ]
 }
