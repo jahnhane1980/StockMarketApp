@@ -1,4 +1,4 @@
-// components/HistoryDialog.js - Transaktionshistorie mit Gruppierung und Filter
+// components/HistoryDialog.js - Reaktives Theme (Full-Body)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -11,15 +11,15 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
-import { Theme } from '../Theme';
+import { useTheme } from '../ThemeContext';
 import { AssetRepository } from '../services/AssetRepository';
 import { ACTIONS } from '../Constants';
 
 const HistoryDialog = ({ visible, onClose }) => {
+  const theme = useTheme();
   const [sections, setSections] = useState([]);
   const [filter, setFilter] = useState('');
 
-  // Fix: loadHistory in useCallback eingekapselt
   const loadHistory = useCallback(async () => {
     try {
       const active = await AssetRepository.getAll();
@@ -57,30 +57,38 @@ const HistoryDialog = ({ visible, onClose }) => {
 
       setSections(sectionData);
     } catch (e) {
-      if (global.log) log.error("HistoryDialog: Fehler beim Laden der Historie", e);
+      if (global.log) log.error("HistoryDialog: Fehler beim Laden", e);
     }
-  }, [filter]); // Abhängigkeit auf filter
+  }, [filter]);
 
   useEffect(() => {
-    if (visible) {
-      loadHistory();
-    }
-  }, [visible, loadHistory]); // Fix: loadHistory hier als Abhängigkeit möglich
+    if (visible) loadHistory();
+  }, [visible, loadHistory]);
+
+  const dynamicStyles = {
+    container: { backgroundColor: theme.colors.bgMain },
+    header: { borderColor: theme.colors.borderSubtle },
+    title: { color: theme.colors.textPrimary },
+    search: { backgroundColor: theme.colors.bgSurface, color: theme.colors.textPrimary },
+    sectionHeader: { backgroundColor: theme.colors.bgSurface, color: theme.colors.textSubtle },
+    row: { borderColor: theme.colors.borderSubtle, color: theme.colors.textPrimary },
+    subText: { color: theme.colors.textSubtle }
+  };
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Transaktions-Historie</Text>
+      <SafeAreaView style={[styles.container, dynamicStyles.container]}>
+        <View style={[styles.header, dynamicStyles.header]}>
+          <Text style={[styles.title, dynamicStyles.title]}>Transaktions-Historie</Text>
           <TouchableOpacity onPress={onClose}>
-            <Text style={styles.closeText}>Schließen</Text>
+            <Text style={{ color: theme.colors.brandPrimary, fontWeight: '500' }}>Schließen</Text>
           </TouchableOpacity>
         </View>
 
         <TextInput 
-          style={styles.searchBar} 
+          style={[styles.searchBar, dynamicStyles.search]} 
           placeholder="Ticker filtern..." 
-          placeholderTextColor={Theme.colors.textSubtle}
+          placeholderTextColor={theme.colors.textSubtle}
           value={filter}
           onChangeText={setFilter}
           autoCapitalize="characters"
@@ -91,31 +99,31 @@ const HistoryDialog = ({ visible, onClose }) => {
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={({ section: { title } }) => (
-            <View style={styles.sectionHeaderBg}>
-              <Text style={styles.sectionHeader}>{title}</Text>
+            <View style={[styles.sectionHeaderBg, { backgroundColor: theme.colors.bgSurface }]}>
+              <Text style={[styles.sectionHeader, { color: theme.colors.textSubtle }]}>{title}</Text>
             </View>
           )}
           renderItem={({ item }) => (
-            <View style={styles.txRow}>
+            <View style={[styles.txRow, { borderColor: theme.colors.borderSubtle }]}>
               <View>
-                <Text style={styles.txTicker}>{item.ticker}</Text>
-                <Text style={styles.txDate}>{item.userTimestamp || '---'}</Text>
+                <Text style={[styles.txTicker, { color: theme.colors.textPrimary }]}>{item.ticker}</Text>
+                <Text style={[styles.txDate, dynamicStyles.subText]}>{item.userTimestamp || '---'}</Text>
               </View>
               <View style={styles.txValues}>
                 <Text style={[
                   styles.txAction, 
-                  { color: item.action === ACTIONS.BUY ? Theme.colors.brandPrimary : Theme.colors.statusCritical }
+                  { color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical }
                 ]}>
                   {item.action}
                 </Text>
-                <Text style={styles.txAmount}>
+                <Text style={[styles.txAmount, { color: theme.colors.textPrimary }]}>
                   {item.totalFiat.toFixed(2)} {item.currency}
                 </Text>
               </View>
             </View>
           )}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>Keine Transaktionen gefunden.</Text>
+            <Text style={[styles.emptyText, dynamicStyles.subText]}>Keine Transaktionen gefunden.</Text>
           }
         />
       </SafeAreaView>
@@ -124,53 +132,19 @@ const HistoryDialog = ({ visible, onClose }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Theme.colors.bgMain },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center',
-    padding: Theme.spacing.md,
-    borderBottomWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle
-  },
-  title: { 
-    color: Theme.colors.textPrimary, 
-    fontSize: Theme.typography.size.lg, 
-    fontWeight: Theme.typography.weight.bold 
-  },
-  closeText: { color: Theme.colors.brandPrimary, fontWeight: Theme.typography.weight.medium },
-  searchBar: { 
-    backgroundColor: Theme.colors.bgSurface, 
-    color: Theme.colors.textPrimary, 
-    padding: Theme.spacing.sm, 
-    borderRadius: Theme.radii.standard, 
-    margin: Theme.spacing.md,
-    fontSize: Theme.typography.size.md
-  },
-  sectionHeaderBg: { backgroundColor: Theme.colors.bgSurface, padding: Theme.spacing.xs, paddingHorizontal: Theme.spacing.md },
-  sectionHeader: { 
-    color: Theme.colors.textSubtle, 
-    fontSize: Theme.typography.size.xs, 
-    textTransform: 'uppercase',
-    fontWeight: Theme.typography.weight.bold
-  },
-  txRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    padding: Theme.spacing.md, 
-    borderBottomWidth: Theme.effects.borderWidthThin, 
-    borderColor: Theme.colors.borderSubtle 
-  },
-  txTicker: { 
-    color: Theme.colors.textPrimary, 
-    fontSize: Theme.typography.size.md, 
-    fontWeight: Theme.typography.weight.bold 
-  },
-  txDate: { color: Theme.colors.textSubtle, fontSize: Theme.typography.size.xs, marginTop: 2 },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1 },
+  title: { fontSize: 18, fontWeight: 'bold' },
+  searchBar: { padding: 12, borderRadius: 6, margin: 16, fontSize: 16 },
+  sectionHeaderBg: { padding: 4, paddingHorizontal: 16 },
+  sectionHeader: { fontSize: 12, textTransform: 'uppercase', fontWeight: 'bold' },
+  txRow: { flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1 },
+  txTicker: { fontSize: 16, fontWeight: 'bold' },
+  txDate: { fontSize: 12, marginTop: 2 },
   txValues: { alignItems: 'flex-end' },
-  txAction: { fontSize: Theme.typography.size.xs, fontWeight: Theme.typography.weight.bold, marginBottom: 2 },
-  txAmount: { color: Theme.colors.textPrimary, fontSize: Theme.typography.size.sm },
-  emptyText: { color: Theme.colors.textSubtle, textAlign: 'center', marginTop: Theme.spacing.xl }
+  txAction: { fontSize: 12, fontWeight: 'bold', marginBottom: 2 },
+  txAmount: { fontSize: 14 },
+  emptyText: { textAlign: 'center', marginTop: 32 }
 });
 
 export default HistoryDialog;

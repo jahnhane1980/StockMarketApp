@@ -1,6 +1,20 @@
-// Theme.js - Unsere zentralen Design Tokens
+// Theme.js - Design Tokens für Dark und Light Mode (Full-Body)
 
-export const Theme = {
+const sharedTokens = {
+  radii: { standard: 6, input: 4, dialog: 8, full: 99 },
+  spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 },
+  layout: { fabBottom: 30, fabRight: 20, fabSize: 56, toolbarHeight: 60, tickerWidth: 80, priceMinWidth: 60, dialogMaxHeight: '85%', iconButtonSize: 40 },
+  typography: {
+    size: { xs: 12, sm: 14, md: 16, lg: 18, xl: 22 },
+    weight: { normal: '400', medium: '500', semibold: '600', bold: 'bold' }
+  },
+  effects: { shadowOpacityFull: 1, shadowOpacityDialog: 0.3, shadowOpacityFab: 0.4, shadowRadiusMarker: 6, shadowRadiusDialog: 10, borderWidthThin: 1 },
+  icons: { sm: 16, md: 24, lg: 30 }
+};
+
+export const DarkTheme = {
+  ...sharedTokens,
+  dark: true,
   colors: {
     bgMain: '#1E1F22',      
     bgSurface: '#2B2D30',   
@@ -15,56 +29,28 @@ export const Theme = {
     statusCritical: '#BC3F3C', 
     statusAlert: '#CC7832',   
     statusSuccess: '#629755', 
-  },
-  radii: {
-    standard: 6,   
-    input: 4,      
-    dialog: 8,     
-    full: 99,      
-  },
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-  },
-  layout: {
-    fabBottom: 30,
-    fabRight: 20,
-    fabSize: 56,
-    toolbarHeight: 60,
-    tickerWidth: 80,
-    priceMinWidth: 60,
-    dialogMaxHeight: '85%',
-    iconButtonSize: 40,
-  },
-  typography: {
-    size: {
-      xs: 12, 
-      sm: 14, 
-      md: 16, 
-      lg: 18, 
-      xl: 22, 
-    },
-    weight: {
-      normal: '400',
-      medium: '500',
-      semibold: '600',
-      bold: 'bold',
-    }
-  },
-  effects: {
-    shadowOpacityFull: 1,
-    shadowOpacityDialog: 0.3,
-    shadowOpacityFab: 0.4,
-    shadowRadiusMarker: 6,
-    shadowRadiusDialog: 10,
-    borderWidthThin: 1,
-  },
-  icons: {
-    sm: 16,
-    md: 24,
-    lg: 30,
   }
 };
+
+export const LightTheme = {
+  ...sharedTokens,
+  dark: false,
+  colors: {
+    bgMain: '#ffffff',      
+    bgSurface: '#d3e3fd',   
+    bgOverlay: 'rgba(0, 0, 0, 0.3)', 
+    borderSubtle: '#c7d8f0', 
+    shadowDefault: '#000',           
+    textPrimary: '#041e49', 
+    textOnPrimary: '#FFFFFF', 
+    textSubtle: '#5f6368',   
+    brandPrimary: '#3574F0', 
+    inputFocus: '#3574F0',   
+    statusCritical: '#b3261e', 
+    statusAlert: '#bf5000',   
+    statusSuccess: '#146c2e', 
+  }
+};
+
+// WICHTIG: Export als 'Theme' für Abwärtskompatibilität während der Umstellung
+export const Theme = DarkTheme;
