@@ -1,6 +1,6 @@
 // components/HistoryDialog.js - Transaktionshistorie mit Gruppierung und Filter
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Modal,
   View,
@@ -19,19 +19,13 @@ const HistoryDialog = ({ visible, onClose }) => {
   const [sections, setSections] = useState([]);
   const [filter, setFilter] = useState('');
 
-  useEffect(() => {
-    if (visible) {
-      loadHistory();
-    }
-  }, [visible, filter]);
-
-  const loadHistory = async () => {
+  // Fix: loadHistory in useCallback eingekapselt
+  const loadHistory = useCallback(async () => {
     try {
       const active = await AssetRepository.getAll();
       const archived = await AssetRepository.getArchived();
       let allTx = [];
 
-      // Alle Transaktionen aus aktiven und archivierten Assets sammeln
       [...active, ...archived].forEach(asset => {
         if (asset.transactions) {
           asset.transactions.forEach(tx => {
@@ -40,17 +34,14 @@ const HistoryDialog = ({ visible, onClose }) => {
         }
       });
 
-      // Filter anwenden
       if (filter) {
         allTx = allTx.filter(tx => 
           tx.ticker.toLowerCase().includes(filter.toLowerCase())
         );
       }
 
-      // Chronologisch sortieren (neueste zuerst)
       allTx.sort((a, b) => new Date(b.recordedAt) - new Date(a.recordedAt));
 
-      // Nach Monat/Jahr gruppieren
       const groups = {};
       allTx.forEach(tx => {
         const date = new Date(tx.recordedAt);
@@ -68,7 +59,13 @@ const HistoryDialog = ({ visible, onClose }) => {
     } catch (e) {
       if (global.log) log.error("HistoryDialog: Fehler beim Laden der Historie", e);
     }
-  };
+  }, [filter]); // Abhängigkeit auf filter
+
+  useEffect(() => {
+    if (visible) {
+      loadHistory();
+    }
+  }, [visible, loadHistory]); // Fix: loadHistory hier als Abhängigkeit möglich
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
