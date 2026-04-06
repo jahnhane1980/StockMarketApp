@@ -1,15 +1,51 @@
-// Theme.js - Design Tokens für Dark und Light Mode (Full-Body)
+// Theme.js - Konsolidierte Design Tokens (Full-Body Sync)
 
 const sharedTokens = {
   radii: { standard: 6, input: 4, dialog: 8, full: 99 },
-  spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 },
-  layout: { fabBottom: 30, fabRight: 20, fabSize: 56, toolbarHeight: 60, tickerWidth: 80, priceMinWidth: 60, dialogMaxHeight: '85%', iconButtonSize: 40 },
+  spacing: { 
+    xs: 4, 
+    sm: 8, 
+    md: 16, 
+    lg: 24, 
+    xl: 32 
+  },
+  layout: { 
+    fabBottom: 30, 
+    fabRight: 20, 
+    fabSize: 56, 
+    toolbarHeight: 60, 
+    tickerWidth: 80, 
+    priceMinWidth: 60, 
+    dialogMaxHeight: '85%', 
+    modalWidth: '90%', // Neu: Konsistente Modal-Breite
+    iconButtonSize: 40 
+  },
   typography: {
-    size: { xs: 12, sm: 14, md: 16, lg: 18, xl: 22 },
+    size: { 
+      xxs: 10, // Neu: Für Labels
+      xs: 12, 
+      sm: 14, 
+      md: 16, 
+      lg: 18, 
+      xl: 22 
+    },
     weight: { normal: '400', medium: '500', semibold: '600', bold: 'bold' }
   },
-  effects: { shadowOpacityFull: 1, shadowOpacityDialog: 0.3, shadowOpacityFab: 0.4, shadowRadiusMarker: 6, shadowRadiusDialog: 10, borderWidthThin: 1 },
-  icons: { sm: 16, md: 24, lg: 30 }
+  effects: { 
+    shadowOpacityFull: 1, 
+    shadowOpacityDialog: 0.3, 
+    shadowOpacityFab: 0.4, 
+    shadowRadiusMarker: 6, 
+    shadowRadiusDialog: 10, 
+    borderWidthThin: 1,
+    opacityDisabled: 0.5 // Neu: Für ausgegraute Ticker
+  },
+  icons: { 
+    xs: 16, // Neu
+    sm: 18, // Neu: Angepasst für Financial Bar
+    md: 24, 
+    lg: 30 
+  }
 };
 
 export const DarkTheme = {
@@ -52,5 +88,4 @@ export const LightTheme = {
   }
 };
 
-// WICHTIG: Export als 'Theme' für Abwärtskompatibilität während der Umstellung
 export const Theme = DarkTheme;

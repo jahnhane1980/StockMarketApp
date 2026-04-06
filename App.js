@@ -1,4 +1,4 @@
-// App.js - Hauptbildschirm mit Theme-Support (Full-Body)
+// App.js - Hauptbildschirm mit Theme-Support (Full-Body Sync)
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -52,9 +52,7 @@ export default function App() {
   const [macroData, setMacroData] = useState(null);
   const [finData, setFinData] = useState({ currentCash: 0, debtAmount: 0 });
 
-  // Dynamisches Theme basierend auf den Settings
   const currentTheme = settings.theme === 'light' ? LightTheme : DarkTheme;
-
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -73,16 +71,12 @@ export default function App() {
       try {
         await Font.loadAsync(Ionicons.font);
         setFontsLoaded(true);
-        
         const loadedAssets = await AssetRepository.getAll();
         setAssets(loadedAssets);
-        
         const loadedSettings = await SettingsRepository.getSettings();
         setSettings(loadedSettings);
-
         const status = await MacroRepository.getStatus();
         setMacroData(status);
-
         const finance = await FinancialRepository.getData();
         setFinData(finance);
       } catch (e) {
@@ -102,16 +96,45 @@ export default function App() {
     return MacroRepository.getColorForScore(macroData.action_summary.global_ui_score, currentTheme);
   };
 
-  // Styles müssen innerhalb der Komponente oder via ThemeContext berechnet werden
   const dynamicStyles = StyleSheet.create({
     container: { flex: 1, backgroundColor: currentTheme.colors.bgMain },
-    toolbar: { height: currentTheme.layout.toolbarHeight, backgroundColor: currentTheme.colors.bgMain, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: currentTheme.spacing.md, borderBottomWidth: currentTheme.effects.borderWidthThin, borderColor: currentTheme.colors.borderSubtle },
+    toolbar: { 
+      height: currentTheme.layout.toolbarHeight, 
+      backgroundColor: currentTheme.colors.bgMain, 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      justifyContent: 'space-between', 
+      paddingHorizontal: currentTheme.spacing.md, 
+      borderBottomWidth: currentTheme.effects.borderWidthThin, 
+      borderColor: currentTheme.colors.borderSubtle 
+    },
     toolbarText: { color: currentTheme.colors.textPrimary, fontSize: currentTheme.typography.size.lg, fontWeight: currentTheme.typography.weight.medium },
-    finSummaryRow: { flexDirection: 'row', backgroundColor: currentTheme.colors.bgSurface, padding: currentTheme.spacing.md, borderRadius: currentTheme.radii.standard, marginBottom: currentTheme.spacing.sm, alignItems: 'center', justifyContent: 'space-between', borderWidth: currentTheme.effects.borderWidthThin, borderColor: currentTheme.colors.borderSubtle },
-    finLabel: { color: currentTheme.colors.textSubtle, fontSize: 10, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: 2 },
-    finValue: { color: currentTheme.colors.textPrimary, fontSize: currentTheme.typography.size.sm, fontWeight: '600' },
-    macroIndicator: { width: 12, height: 12, borderRadius: 6, backgroundColor: currentTheme.colors.textSubtle },
-    fab: { position: 'absolute', bottom: currentTheme.layout.fabBottom, right: currentTheme.layout.fabRight, width: currentTheme.layout.fabSize, height: currentTheme.layout.fabSize, borderRadius: currentTheme.layout.fabSize / 2, backgroundColor: currentTheme.colors.brandPrimary, justifyContent: 'center', alignItems: 'center', elevation: 5 }
+    finSummaryRow: { 
+      flexDirection: 'row', 
+      backgroundColor: currentTheme.colors.bgSurface, 
+      padding: currentTheme.spacing.md, 
+      borderRadius: currentTheme.radii.standard, 
+      marginBottom: currentTheme.spacing.sm, 
+      alignItems: 'center', 
+      justifyContent: 'space-between', 
+      borderWidth: currentTheme.effects.borderWidthThin, 
+      borderColor: currentTheme.colors.borderSubtle 
+    },
+    finLabel: { color: currentTheme.colors.textSubtle, fontSize: currentTheme.typography.size.xxs, textTransform: 'uppercase', fontWeight: currentTheme.typography.weight.bold, marginBottom: 2 },
+    finValue: { color: currentTheme.colors.textPrimary, fontSize: currentTheme.typography.size.sm, fontWeight: currentTheme.typography.weight.semibold },
+    macroIndicator: { width: 12, height: 12, borderRadius: 6 },
+    fab: { 
+      position: 'absolute', 
+      bottom: currentTheme.layout.fabBottom, 
+      right: currentTheme.layout.fabRight, 
+      width: currentTheme.layout.fabSize, 
+      height: currentTheme.layout.fabSize, 
+      borderRadius: currentTheme.layout.fabSize / 2, 
+      backgroundColor: currentTheme.colors.brandPrimary, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      elevation: 5 
+    }
   });
 
   return (
@@ -150,7 +173,7 @@ export default function App() {
                 </Text>
               </View>
               <TouchableOpacity style={styles.finEditIcon} onPress={() => setFinVisible(true)}>
-                {fontsLoaded && <Ionicons name="options-outline" size={18} color={currentTheme.colors.brandPrimary} />}
+                {fontsLoaded && <Ionicons name="options-outline" size={currentTheme.icons.sm} color={currentTheme.colors.brandPrimary} />}
               </TouchableOpacity>
             </View>
 

@@ -1,7 +1,17 @@
-// components/FinancialDialog.js - Reaktives Theme (Full-Body)
+// components/FinancialDialog.js - Professionelles Refactoring (Full-Body)
 
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
+import { 
+  Modal, 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  TouchableWithoutFeedback, 
+  Keyboard, 
+  ScrollView 
+} from 'react-native';
 import { useTheme } from '../ThemeContext';
 
 const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
@@ -29,12 +39,44 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
     });
   };
 
+  const dynamicStyles = {
+    container: { 
+      backgroundColor: theme.colors.bgMain, 
+      borderColor: theme.colors.borderSubtle,
+      borderRadius: theme.radii.dialog,
+      padding: theme.spacing.lg,
+      width: theme.layout.modalWidth,
+      borderWidth: theme.effects.borderWidthThin
+    },
+    title: { 
+      color: theme.colors.textPrimary, 
+      fontSize: theme.typography.size.xl,
+      fontWeight: theme.typography.weight.bold,
+      marginBottom: theme.spacing.lg
+    },
+    inputGroup: { marginBottom: theme.spacing.md },
+    label: { 
+      color: theme.colors.textSubtle, 
+      fontSize: theme.typography.size.xs,
+      marginBottom: theme.spacing.xs 
+    },
+    input: { 
+      color: theme.colors.textPrimary, 
+      borderColor: theme.colors.borderSubtle,
+      borderBottomWidth: theme.effects.borderWidthThin,
+      padding: theme.spacing.sm,
+      fontSize: theme.typography.size.md
+    },
+    btnPrimary: { backgroundColor: theme.colors.brandPrimary, padding: theme.spacing.md },
+    btnSecondary: { backgroundColor: theme.colors.bgSurface, padding: theme.spacing.md }
+  };
+
   return (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
       <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={[styles.container, { backgroundColor: theme.colors.bgMain, borderColor: theme.colors.borderSubtle }]}>
-            <Text style={[styles.title, { color: theme.colors.textPrimary }]}>Finanz-Status</Text>
+          <View style={dynamicStyles.container}>
+            <Text style={[styles.title, dynamicStyles.title]}>Finanz-Status</Text>
             
             <ScrollView showsVerticalScrollIndicator={false}>
               {[
@@ -43,10 +85,10 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
                 { label: 'Fremdkapital (€)', value: debt, set: setDebt },
                 { label: 'Kreditzins p.a. (%)', value: dInt, set: setDInt },
               ].map((item, idx) => (
-                <View key={idx} style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.colors.textSubtle }]}>{item.label}</Text>
+                <View key={idx} style={dynamicStyles.inputGroup}>
+                  <Text style={dynamicStyles.label}>{item.label}</Text>
                   <TextInput 
-                    style={[styles.input, { color: theme.colors.textPrimary, borderColor: theme.colors.borderSubtle }]} 
+                    style={dynamicStyles.input} 
                     keyboardType="decimal-pad" 
                     value={item.value} 
                     onChangeText={item.set} 
@@ -56,10 +98,10 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
             </ScrollView>
 
             <View style={styles.btnRow}>
-              <TouchableOpacity style={[styles.btn, { backgroundColor: theme.colors.brandPrimary }]} onPress={handleSave}>
+              <TouchableOpacity style={[styles.btn, dynamicStyles.btnPrimary]} onPress={handleSave}>
                 <Text style={styles.btnText}>Speichern</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.btn, { backgroundColor: theme.colors.bgSurface }]} onPress={onClose}>
+              <TouchableOpacity style={[styles.btn, dynamicStyles.btnSecondary]} onPress={onClose}>
                 <Text style={{ color: theme.colors.textPrimary }}>Abbrechen</Text>
               </TouchableOpacity>
             </View>
@@ -72,13 +114,9 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
 
 const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  container: { width: '90%', borderRadius: 8, padding: 24, borderWidth: 1 },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-  inputGroup: { marginBottom: 16 },
-  label: { fontSize: 12, marginBottom: 4 },
-  input: { borderBottomWidth: 1, padding: 8, fontSize: 16 },
+  title: { textAlign: 'center' },
   btnRow: { marginTop: 24, gap: 12 },
-  btn: { padding: 16, borderRadius: 6, alignItems: 'center' },
+  btn: { borderRadius: 6, alignItems: 'center' },
   btnText: { color: '#FFFFFF', fontWeight: 'bold' }
 });
 

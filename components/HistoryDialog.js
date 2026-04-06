@@ -1,4 +1,4 @@
-// components/HistoryDialog.js - Reaktives Theme (Full-Body)
+// components/HistoryDialog.js - Reaktives Theme & Theme-Tokens (Full-Body)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -67,12 +67,19 @@ const HistoryDialog = ({ visible, onClose }) => {
 
   const dynamicStyles = {
     container: { backgroundColor: theme.colors.bgMain },
-    header: { borderColor: theme.colors.borderSubtle },
-    title: { color: theme.colors.textPrimary },
-    search: { backgroundColor: theme.colors.bgSurface, color: theme.colors.textPrimary },
-    sectionHeader: { backgroundColor: theme.colors.bgSurface, color: theme.colors.textSubtle },
-    row: { borderColor: theme.colors.borderSubtle, color: theme.colors.textPrimary },
-    subText: { color: theme.colors.textSubtle }
+    header: { borderColor: theme.colors.borderSubtle, padding: theme.spacing.md },
+    title: { color: theme.colors.textPrimary, fontSize: theme.typography.size.lg },
+    search: { 
+      backgroundColor: theme.colors.bgSurface, 
+      color: theme.colors.textPrimary, 
+      padding: theme.spacing.md,
+      margin: theme.spacing.md,
+      fontSize: theme.typography.size.md,
+      borderRadius: theme.radii.standard
+    },
+    sectionHeader: { backgroundColor: theme.colors.bgSurface, color: theme.colors.textSubtle, padding: theme.spacing.xs, paddingHorizontal: theme.spacing.md },
+    row: { borderColor: theme.colors.borderSubtle, color: theme.colors.textPrimary, padding: theme.spacing.md },
+    subText: { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs }
   };
 
   return (
@@ -81,7 +88,7 @@ const HistoryDialog = ({ visible, onClose }) => {
         <View style={[styles.header, dynamicStyles.header]}>
           <Text style={[styles.title, dynamicStyles.title]}>Transaktions-Historie</Text>
           <TouchableOpacity onPress={onClose}>
-            <Text style={{ color: theme.colors.brandPrimary, fontWeight: '500' }}>Schließen</Text>
+            <Text style={{ color: theme.colors.brandPrimary, fontWeight: theme.typography.weight.medium }}>Schließen</Text>
           </TouchableOpacity>
         </View>
 
@@ -99,31 +106,31 @@ const HistoryDialog = ({ visible, onClose }) => {
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={({ section: { title } }) => (
-            <View style={[styles.sectionHeaderBg, { backgroundColor: theme.colors.bgSurface }]}>
-              <Text style={[styles.sectionHeader, { color: theme.colors.textSubtle }]}>{title}</Text>
+            <View style={[styles.sectionHeaderBg, { backgroundColor: dynamicStyles.sectionHeader.backgroundColor, padding: dynamicStyles.sectionHeader.padding, paddingHorizontal: dynamicStyles.sectionHeader.paddingHorizontal }]}>
+              <Text style={[styles.sectionHeader, { color: dynamicStyles.sectionHeader.color, fontSize: dynamicStyles.subText.fontSize }]}>{title}</Text>
             </View>
           )}
           renderItem={({ item }) => (
-            <View style={[styles.txRow, { borderColor: theme.colors.borderSubtle }]}>
+            <View style={[styles.txRow, { borderColor: dynamicStyles.row.borderColor, padding: dynamicStyles.row.padding }]}>
               <View>
-                <Text style={[styles.txTicker, { color: theme.colors.textPrimary }]}>{item.ticker}</Text>
+                <Text style={[styles.txTicker, { color: theme.colors.textPrimary, fontSize: theme.typography.size.md }]}>{item.ticker}</Text>
                 <Text style={[styles.txDate, dynamicStyles.subText]}>{item.userTimestamp || '---'}</Text>
               </View>
               <View style={styles.txValues}>
                 <Text style={[
                   styles.txAction, 
-                  { color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical }
+                  { color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical, fontSize: dynamicStyles.subText.fontSize }
                 ]}>
                   {item.action}
                 </Text>
-                <Text style={[styles.txAmount, { color: theme.colors.textPrimary }]}>
+                <Text style={[styles.txAmount, { color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }]}>
                   {item.totalFiat.toFixed(2)} {item.currency}
                 </Text>
               </View>
             </View>
           )}
           ListEmptyComponent={
-            <Text style={[styles.emptyText, dynamicStyles.subText]}>Keine Transaktionen gefunden.</Text>
+            <Text style={[styles.emptyText, dynamicStyles.subText, { marginTop: theme.spacing.xl }]}>Keine Transaktionen gefunden.</Text>
           }
         />
       </SafeAreaView>
@@ -133,18 +140,18 @@ const HistoryDialog = ({ visible, onClose }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1 },
-  title: { fontSize: 18, fontWeight: 'bold' },
-  searchBar: { padding: 12, borderRadius: 6, margin: 16, fontSize: 16 },
-  sectionHeaderBg: { padding: 4, paddingHorizontal: 16 },
-  sectionHeader: { fontSize: 12, textTransform: 'uppercase', fontWeight: 'bold' },
-  txRow: { flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1 },
-  txTicker: { fontSize: 16, fontWeight: 'bold' },
-  txDate: { fontSize: 12, marginTop: 2 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1 },
+  title: { fontWeight: 'bold' },
+  searchBar: {},
+  sectionHeaderBg: {},
+  sectionHeader: { textTransform: 'uppercase', fontWeight: 'bold' },
+  txRow: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1 },
+  txTicker: { fontWeight: 'bold' },
+  txDate: { marginTop: 2 },
   txValues: { alignItems: 'flex-end' },
-  txAction: { fontSize: 12, fontWeight: 'bold', marginBottom: 2 },
-  txAmount: { fontSize: 14 },
-  emptyText: { textAlign: 'center', marginTop: 32 }
+  txAction: { fontWeight: 'bold', marginBottom: 2 },
+  txAmount: {},
+  emptyText: { textAlign: 'center' }
 });
 
 export default HistoryDialog;

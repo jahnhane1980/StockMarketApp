@@ -1,4 +1,4 @@
-// components/TransactionDialog.js - Reaktives Theme-Management (Full-Body)
+// components/TransactionDialog.js - Reaktives Theme & Theme-Tokens (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -51,12 +51,12 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
   };
 
   const dynamicStyles = {
-    container: { backgroundColor: theme.colors.bgMain, borderRadius: theme.radii.dialog, borderColor: theme.colors.borderSubtle },
+    container: { backgroundColor: theme.colors.bgMain, borderRadius: theme.radii.dialog, borderColor: theme.colors.borderSubtle, width: theme.layout.modalWidth, padding: theme.spacing.lg },
     title: { color: theme.colors.textPrimary, fontSize: theme.typography.size.lg },
     label: { color: theme.colors.textSubtle, fontSize: theme.typography.size.sm },
-    input: { color: theme.colors.textPrimary, borderColor: theme.colors.borderSubtle },
-    chip: { borderColor: theme.colors.borderSubtle },
-    chipText: { color: theme.colors.textSubtle },
+    input: { color: theme.colors.textPrimary, borderColor: theme.colors.borderSubtle, padding: theme.spacing.sm, fontSize: theme.typography.size.md },
+    chip: { borderColor: theme.colors.borderSubtle, padding: theme.spacing.sm, borderRadius: theme.radii.input, gap: theme.spacing.sm },
+    chipText: { color: theme.colors.textSubtle, fontSize: theme.typography.size.sm },
     chipSelected: { backgroundColor: theme.colors.brandPrimary, borderColor: theme.colors.brandPrimary },
     chipSelectedSell: { backgroundColor: theme.colors.statusCritical, borderColor: theme.colors.statusCritical }
   };
@@ -66,66 +66,66 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
       <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={[styles.dialogContainer, dynamicStyles.container]}>
-            <Text style={[styles.dialogTitle, dynamicStyles.title]}>{ticker}: Trade erfassen</Text>
+            <Text style={[styles.dialogTitle, dynamicStyles.title, { fontWeight: theme.typography.weight.bold, marginBottom: theme.spacing.md }]}>{ticker}: Trade erfassen</Text>
             
             <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, dynamicStyles.label]}>Aktion</Text>
-                <View style={styles.chipRow}>
+              <View style={[styles.inputGroup, { marginBottom: theme.spacing.md }]}>
+                <Text style={[styles.inputLabel, dynamicStyles.label, { marginBottom: theme.spacing.xs }]}>Aktion</Text>
+                <View style={[styles.chipRow, { gap: dynamicStyles.chip.gap }]}>
                   <TouchableOpacity 
-                    style={[styles.chip, dynamicStyles.chip, action === ACTIONS.BUY && dynamicStyles.chipSelected]}
+                    style={[styles.chip, { borderColor: dynamicStyles.chip.borderColor, padding: dynamicStyles.chip.padding, borderRadius: dynamicStyles.chip.borderRadius }, action === ACTIONS.BUY && dynamicStyles.chipSelected]}
                     onPress={() => setAction(ACTIONS.BUY)}
                   >
-                    <Text style={[styles.chipText, dynamicStyles.chipText, action === ACTIONS.BUY && styles.chipTextActive]}>Kauf</Text>
+                    <Text style={[styles.chipText, { color: dynamicStyles.chipText.color, fontSize: dynamicStyles.chipText.fontSize }, action === ACTIONS.BUY && styles.chipTextActive]}>Kauf</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    style={[styles.chip, dynamicStyles.chip, action === ACTIONS.SELL && dynamicStyles.chipSelectedSell]}
+                    style={[styles.chip, { borderColor: dynamicStyles.chip.borderColor, padding: dynamicStyles.chip.padding, borderRadius: dynamicStyles.chip.borderRadius }, action === ACTIONS.SELL && dynamicStyles.chipSelectedSell]}
                     onPress={() => setAction(ACTIONS.SELL)}
                   >
-                    <Text style={[styles.chipText, dynamicStyles.chipText, action === ACTIONS.SELL && styles.chipTextActive]}>Verkauf</Text>
+                    <Text style={[styles.chipText, { color: dynamicStyles.chipText.color, fontSize: dynamicStyles.chipText.fontSize }, action === ACTIONS.SELL && styles.chipTextActive]}>Verkauf</Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, dynamicStyles.label]}>Währung</Text>
-                <View style={styles.chipRow}>
+              <View style={[styles.inputGroup, { marginBottom: theme.spacing.md }]}>
+                <Text style={[styles.inputLabel, dynamicStyles.label, { marginBottom: theme.spacing.xs }]}>Währung</Text>
+                <View style={[styles.chipRow, { gap: dynamicStyles.chip.gap }]}>
                   {Object.values(CURRENCIES).map(curr => (
                     <TouchableOpacity 
                       key={curr} 
-                      style={[styles.chip, dynamicStyles.chip, currency === curr && dynamicStyles.chipSelected]}
+                      style={[styles.chip, { borderColor: dynamicStyles.chip.borderColor, padding: dynamicStyles.chip.padding, borderRadius: dynamicStyles.chip.borderRadius }, currency === curr && dynamicStyles.chipSelected]}
                       onPress={() => setCurrency(curr)}
                     >
-                      <Text style={[styles.chipText, dynamicStyles.chipText, currency === curr && styles.chipTextActive]}>{curr}</Text>
+                      <Text style={[styles.chipText, { color: dynamicStyles.chipText.color, fontSize: dynamicStyles.chipText.fontSize }, currency === curr && styles.chipTextActive]}>{curr}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, dynamicStyles.label]}>Zeitpunkt</Text>
-                <TextInput style={[styles.textInput, dynamicStyles.input]} value={timestamp} onChangeText={setTimestamp} placeholderTextColor={theme.colors.textSubtle} />
+              <View style={[styles.inputGroup, { marginBottom: theme.spacing.md }]}>
+                <Text style={[styles.inputLabel, dynamicStyles.label, { marginBottom: theme.spacing.xs }]}>Zeitpunkt</Text>
+                <TextInput style={[styles.textInput, { borderBottomWidth: 1, color: dynamicStyles.input.color, borderColor: dynamicStyles.input.borderColor, padding: dynamicStyles.input.padding, fontSize: dynamicStyles.input.fontSize }]} value={timestamp} onChangeText={setTimestamp} placeholderTextColor={theme.colors.textSubtle} />
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, dynamicStyles.label]}>Gesamtbetrag (Fiat)</Text>
-                <TextInput style={[styles.textInput, dynamicStyles.input]} keyboardType="decimal-pad" value={totalFiat} onChangeText={setTotalFiat} placeholder="0.00" placeholderTextColor={theme.colors.textSubtle} />
+              <View style={[styles.inputGroup, { marginBottom: theme.spacing.md }]}>
+                <Text style={[styles.inputLabel, dynamicStyles.label, { marginBottom: theme.spacing.xs }]}>Gesamtbetrag (Fiat)</Text>
+                <TextInput style={[styles.textInput, { borderBottomWidth: 1, color: dynamicStyles.input.color, borderColor: dynamicStyles.input.borderColor, padding: dynamicStyles.input.padding, fontSize: dynamicStyles.input.fontSize }]} keyboardType="decimal-pad" value={totalFiat} onChangeText={setTotalFiat} placeholder="0.00" placeholderTextColor={theme.colors.textSubtle} />
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, dynamicStyles.label]}>Stückpreis / Kurs</Text>
-                <TextInput style={[styles.textInput, dynamicStyles.input]} keyboardType="decimal-pad" value={pricePerUnit} onChangeText={setPricePerUnit} placeholder="0.00" placeholderTextColor={theme.colors.textSubtle} />
+              <View style={[styles.inputGroup, { marginBottom: theme.spacing.md }]}>
+                <Text style={[styles.inputLabel, dynamicStyles.label, { marginBottom: theme.spacing.xs }]}>Stückpreis / Kurs</Text>
+                <TextInput style={[styles.textInput, { borderBottomWidth: 1, color: dynamicStyles.input.color, borderColor: dynamicStyles.input.borderColor, padding: dynamicStyles.input.padding, fontSize: dynamicStyles.input.fontSize }]} keyboardType="decimal-pad" value={pricePerUnit} onChangeText={setPricePerUnit} placeholder="0.00" placeholderTextColor={theme.colors.textSubtle} />
               </View>
 
               {action === ACTIONS.BUY && (
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, dynamicStyles.label]}>Finanzierung</Text>
-                  <View style={styles.chipRow}>
-                    <TouchableOpacity style={[styles.chip, dynamicStyles.chip, funding === FUNDING_SOURCES.EQUITY && dynamicStyles.chipSelected]} onPress={() => setFunding(FUNDING_SOURCES.EQUITY)}>
-                      <Text style={[styles.chipText, dynamicStyles.chipText, funding === FUNDING_SOURCES.EQUITY && styles.chipTextActive]}>EK</Text>
+                <View style={[styles.inputGroup, { marginBottom: theme.spacing.md }]}>
+                  <Text style={[styles.inputLabel, dynamicStyles.label, { marginBottom: theme.spacing.xs }]}>Finanzierung</Text>
+                  <View style={[styles.chipRow, { gap: dynamicStyles.chip.gap }]}>
+                    <TouchableOpacity style={[styles.chip, { borderColor: dynamicStyles.chip.borderColor, padding: dynamicStyles.chip.padding, borderRadius: dynamicStyles.chip.borderRadius }, funding === FUNDING_SOURCES.EQUITY && dynamicStyles.chipSelected]} onPress={() => setFunding(FUNDING_SOURCES.EQUITY)}>
+                      <Text style={[styles.chipText, { color: dynamicStyles.chipText.color, fontSize: dynamicStyles.chipText.fontSize }, funding === FUNDING_SOURCES.EQUITY && styles.chipTextActive]}>EK</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.chip, dynamicStyles.chip, funding === FUNDING_SOURCES.DEBT && dynamicStyles.chipSelected]} onPress={() => setFunding(FUNDING_SOURCES.DEBT)}>
-                      <Text style={[styles.chipText, dynamicStyles.chipText, funding === FUNDING_SOURCES.DEBT && styles.chipTextActive]}>FK</Text>
+                    <TouchableOpacity style={[styles.chip, { borderColor: dynamicStyles.chip.borderColor, padding: dynamicStyles.chip.padding, borderRadius: dynamicStyles.chip.borderRadius }, funding === FUNDING_SOURCES.DEBT && dynamicStyles.chipSelected]} onPress={() => setFunding(FUNDING_SOURCES.DEBT)}>
+                      <Text style={[styles.chipText, { color: dynamicStyles.chipText.color, fontSize: dynamicStyles.chipText.fontSize }, funding === FUNDING_SOURCES.DEBT && styles.chipTextActive]}>FK</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -133,10 +133,10 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
             </ScrollView>
 
             <TouchableOpacity 
-              style={[styles.buttonPrimary, { backgroundColor: action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical }]} 
+              style={[styles.buttonPrimary, { backgroundColor: action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical, padding: theme.spacing.md, borderRadius: theme.radii.standard, marginTop: theme.spacing.md }]} 
               onPress={handleSave}
             >
-              <Text style={styles.buttonPrimaryText}>Transaktion speichern</Text>
+              <Text style={[styles.buttonPrimaryText, { fontWeight: theme.typography.weight.bold }]}>Transaktion speichern</Text>
             </TouchableOpacity>
           </View>
         </TouchableWithoutFeedback>
@@ -147,17 +147,17 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
 
 const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  dialogContainer: { width: '90%', padding: 24, borderWidth: 1 },
-  dialogTitle: { fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
-  inputGroup: { marginBottom: 16 },
-  inputLabel: { marginBottom: 4 },
-  textInput: { borderBottomWidth: 1, padding: 8, fontSize: 16 },
-  chipRow: { flexDirection: 'row', gap: 8 },
-  chip: { flex: 1, padding: 8, borderRadius: 4, alignItems: 'center', borderWidth: 1 },
-  chipText: { fontSize: 14 },
+  dialogContainer: { borderWidth: 1 },
+  dialogTitle: { textAlign: 'center' },
+  inputGroup: {},
+  inputLabel: {},
+  textInput: {},
+  chipRow: { flexDirection: 'row' },
+  chip: { flex: 1, alignItems: 'center', borderWidth: 1 },
+  chipText: {},
   chipTextActive: { color: '#FFFFFF', fontWeight: 'bold' },
-  buttonPrimary: { padding: 16, borderRadius: 6, alignItems: 'center', marginTop: 16 },
-  buttonPrimaryText: { color: '#FFFFFF', fontWeight: 'bold' }
+  buttonPrimary: { alignItems: 'center' },
+  buttonPrimaryText: { color: '#FFFFFF' }
 });
 
 export default TransactionDialog;
