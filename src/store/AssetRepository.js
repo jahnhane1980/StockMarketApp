@@ -1,7 +1,8 @@
-// src/store/AssetRepository.js - Lazy Storage (Full-Body)
+// src/store/AssetRepository.js - Lazy Storage mit Seed-Logik (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 import { ACTIONS } from '../core/Constants';
+import initialPortfolioMock from '../../mock/InitialPortfolio.json';
 
 const STORAGE_KEY = '@assets_v1';
 const STORAGE_KEY_ARCHIVE = '@assets_archived_v1';
@@ -11,8 +12,17 @@ export class AssetRepository {
     const storage = StorageServiceFactory.getService();
     try {
       const data = await storage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch (error) { return []; }
+      if (data) {
+        return JSON.parse(data);
+      } else {
+        // NEU: Seeding beim allerersten Start
+        await storage.setItem(STORAGE_KEY, JSON.stringify(initialPortfolioMock));
+        if (global.log) global.log.info("AssetRepository: Initiales Portfolio (Seed) geladen.");
+        return initialPortfolioMock;
+      }
+    } catch (error) { 
+      return []; 
+    }
   }
 
   static getPositionStats(asset) {
