@@ -9,3 +9,12 @@ All projects created in Snack are publicly available, so you can easily share th
 If you're having problems, you can tweet to us [@expo](https://twitter.com/expo) or ask in our [forums](https://forums.expo.dev/c/expo-dev-tools/61) or [Discord](https://chat.expo.dev/).
 
 Snack is Open Source. You can find the code on the [GitHub repo](https://github.com/expo/snack).
+
+---
+
+## TODO / Roadmap
+
+* **Google API Integration**: Implementierung der echten Prompts und der Logik in `src/api/GoogleApiService.js`, um Live-Marktdaten und Analysen zu erhalten.
+* **Listen-Performance**: Umstellung der Asset-Liste in `MainView.js` von `ScrollView` mit `.map()` auf die `FlatList`-Komponente. Dies reduziert die Speicherlast bei großen Portfolios durch Fenster-Rendering (Windowing).
+* **Business-Logik (Berechnungen)**: Memoisierung der Berechnungen in `AssetRepository.getPositionStats` (z. B. durch einen Selector). Damit wird verhindert, dass die Kalkulationen bei jedem UI-Update unnötig neu ausgeführt werden.
+* **Navigation & Erweiterung**: Einführung einer Navigations-Bibliothek wie **React Navigation**, um von der manuellen Dialog-Steuerung wegzukommen. Dies ist die Voraussetzung für geplante Erweiterungen wie eine dedizierte Analyse-Seite und den **StockRadar**.
