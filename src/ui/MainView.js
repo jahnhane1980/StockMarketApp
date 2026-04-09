@@ -74,26 +74,25 @@ export default function MainView() {
               <Animated.View style={[{ width: 12, height: 12, borderRadius: 6, backgroundColor: marketVm.color }, { transform: [{ scale: pulseAnim }] }]} />
               <Text style={{ color: currentTheme.colors.text, fontSize: currentTheme.typography.size.subheading, fontWeight: currentTheme.typography.weight.medium }}>Market</Text>
             </TouchableOpacity>
-            <div style={{ flexDirection: 'row', alignItems: 'center', gap: currentTheme.spacing.sm }}>
+            {/* FIX: 'div' durch 'View' ersetzt */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: currentTheme.spacing.sm }}>
               <TouchableOpacity onPress={() => actions.toggleDialog('history', true)} style={{ padding: 8 }}>
                 {fontsLoaded && <Ionicons name="receipt-outline" size={currentTheme.layout.icon.md} color={currentTheme.colors.text} />}
               </TouchableOpacity>
               <TouchableOpacity onPress={() => actions.toggleDialog('settings', true)} style={{ padding: 8 }}>
                 {fontsLoaded && <Ionicons name="settings-outline" size={currentTheme.layout.icon.md} color={currentTheme.colors.text} />}
               </TouchableOpacity>
-            </div>
+            </View>
           </View>
 
           {/* Main List */}
           <ScrollView contentContainerStyle={{ padding: currentTheme.spacing.md }}>
             <View style={dynamicStyles.finRow}>
               <View style={{ flex: 1 }}>
-                {/* FIX: theme -> currentTheme */}
                 <Text style={{ color: currentTheme.colors.textSubtle, fontSize: currentTheme.typography.size.caption, textTransform: 'uppercase', fontWeight: currentTheme.typography.weight.bold }}>Available Cash</Text>
                 <Text style={{ color: currentTheme.colors.text, fontSize: currentTheme.typography.size.body, fontWeight: currentTheme.typography.weight.bold }}>{finData.currentCash.toLocaleString()} €</Text>
               </View>
               <View style={{ flex: 1 }}>
-                {/* FIX: theme -> currentTheme */}
                 <Text style={{ color: currentTheme.colors.textSubtle, fontSize: currentTheme.typography.size.caption, textTransform: 'uppercase', fontWeight: currentTheme.typography.weight.bold }}>Debt Capital</Text>
                 <Text style={[{ color: currentTheme.colors.text, fontSize: currentTheme.typography.size.body, fontWeight: currentTheme.typography.weight.bold }, finData.debtAmount > 0 && { color: currentTheme.colors.error }]}>{finData.debtAmount.toLocaleString()} €</Text>
               </View>
