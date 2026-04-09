@@ -1,17 +1,24 @@
+// index.js - Update: Task Registration Trigger (Full-Body)
+
 import { registerRootComponent } from 'expo';
 import { logger } from 'react-native-logs';
 import App from './App'; 
+import { BackgroundWorkerService } from './src/api/BackgroundWorkerService';
 
-// Globalen Logger initialisieren (nur Konsole für Expo Snack Kompatibilität)
 const log = logger.createLogger();
-
-// Den Logger global verfügbar machen, damit er überall ohne Import genutzt werden kann
 global.log = log;
 
 log.info("App wird gestartet und Logger ist initialisiert.");
 
-// Wichtig: Die Komponente registrieren...
+// 1. Task definieren
+BackgroundWorkerService.defineMarketTask();
+
+// 2. Notifications vorbereiten
+BackgroundWorkerService.setupNotifications();
+
+// 3. Task beim System registrieren
+BackgroundWorkerService.registerMarketTask();
+
 registerRootComponent(App);
 
-// ...UND als default exportieren
 export default App;
