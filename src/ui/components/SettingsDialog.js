@@ -1,12 +1,13 @@
-// src/ui/components/SettingsDialog.js - Refactored (Full-Body)
+// src/ui/components/SettingsDialog.js - Refactored with ThemedChipGroup (Full-Body)
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
-import { InputUtils } from '../../core/InputUtils'; // Utility Import
+import { InputUtils } from '../../core/InputUtils'; 
 import ThemedDialog from '../common/ThemedDialog';
 import ThemedButton from '../common/ThemedButton';
 import ThemedInput from '../common/ThemedInput';
+import ThemedChipGroup from '../common/ThemedChipGroup';
 
 const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
   const theme = useTheme();
@@ -21,7 +22,6 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
   }, [visible, currentSettings]);
 
   const handleSave = () => {
-    // Sanitize Key vor dem Speichern
     onSave({ 
       apiKey: InputUtils.sanitizeKey(apiKey), 
       theme: selectedTheme 
@@ -35,15 +35,6 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
     </View>
   );
 
-  const ThemeChip = ({ label, value }) => (
-    <TouchableOpacity 
-      style={[{ flex: 1, padding: theme.spacing.sm, borderRadius: theme.radii.md, borderWidth: theme.effects.border, borderColor: theme.colors.border, alignItems: 'center' }, selectedTheme === value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }]} 
-      onPress={() => setSelectedTheme(value)}
-    >
-      <Text style={{ color: selectedTheme === value ? theme.colors.onPrimary : theme.colors.textSubtle, fontSize: theme.typography.size.body, fontWeight: selectedTheme === value ? theme.typography.weight.bold : theme.typography.weight.regular }}>{label}</Text>
-    </TouchableOpacity>
-  );
-
   return (
     <ThemedDialog visible={visible} onClose={onClose} title="Konfiguration" footer={footer}>
       <ThemedInput 
@@ -53,13 +44,15 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
         placeholder="AIzaSy..." 
       />
       
-      <View style={{ marginBottom: theme.spacing.md }}>
-        <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption, marginBottom: theme.spacing.xs, fontWeight: theme.typography.weight.medium }}>Erscheinungsbild</Text>
-        <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
-          <ThemeChip label="Dunkel" value="dark" />
-          <ThemeChip label="Hell" value="light" />
-        </View>
-      </View>
+      <ThemedChipGroup 
+        label="Erscheinungsbild"
+        selected={selectedTheme}
+        onSelect={setSelectedTheme}
+        options={[
+          { label: 'Dunkel', value: 'dark' },
+          { label: 'Hell', value: 'light' }
+        ]}
+      />
     </ThemedDialog>
   );
 };

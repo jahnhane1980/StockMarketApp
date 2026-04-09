@@ -1,4 +1,4 @@
-// src/ui/presenters/AssetPresenter.js - Erweiterte visuelle Logik
+// src/ui/presenters/AssetPresenter.js - Strategy-Pattern Extension (Full-Body)
 
 import { ACTIONS } from '../../core/Constants';
 
@@ -27,6 +27,21 @@ export const AssetPresenter = {
       statusColor: statusColor,
       statusIcon: iconName,
       showStatusIcon: !!iconName,
+    };
+  },
+
+  /**
+   * Strategy-Pattern für Transaktionen (Kauf vs. Verkauf)
+   */
+  getTransactionStrategy: (action, theme) => {
+    const isBuy = action === ACTIONS.BUY;
+    
+    return {
+      themeColor: isBuy ? theme.colors.primary : theme.colors.error,
+      buttonType: isBuy ? 'primary' : 'critical',
+      buttonTitle: isBuy ? 'Kauf speichern' : 'Verkauf speichern',
+      headerSuffix: isBuy ? 'Kauf' : 'Verkauf',
+      showFunding: isBuy
     };
   },
 

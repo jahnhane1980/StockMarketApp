@@ -1,13 +1,15 @@
-// src/ui/components/TransactionDialog.js - Refactored (Full-Body)
+// src/ui/components/TransactionDialog.js - Strategy-Pattern Implementation (Full-Body)
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { ACTIONS, CURRENCIES, FUNDING_SOURCES } from '../../core/Constants';
+import { AssetPresenter } from '../presenters/AssetPresenter';
+import { InputUtils } from '../../core/InputUtils';
 import ThemedDialog from '../common/ThemedDialog';
 import ThemedButton from '../common/ThemedButton';
 import ThemedInput from '../common/ThemedInput';
-import { InputUtils } from '../../core/InputUtils';
+import ThemedChipGroup from '../common/ThemedChipGroup';
 
 const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
   const theme = useTheme();
@@ -20,9 +22,14 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
   
   const [errors, setErrors] = useState({});
 
+  // Strategy abrufen
+  const strategy = AssetPresenter.getTransactionStrategy(action, theme);
+
   useEffect(() => {
     if (visible) {
-      setTotalFiat(''); setPricePerUnit(''); setAction(ACTIONS.BUY);
+      setTotalFiat(''); 
+      setPricePerUnit(''); 
+      setAction(ACTIONS.BUY);
       setErrors({});
       const now = new Date();
       setTimestamp(`${now.getDate().toString().padStart(2, '0')}.${(now.getMonth()+1).toString().padStart(2, '0')}.${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
@@ -34,11 +41,7 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
       totalFiat: InputUtils.validateIsPositiveAmount(totalFiat, "Betrag"),
       pricePerUnit: InputUtils.validateIsPositiveAmount(pricePerUnit, "Kurs")
     };
-    
-    const activeErrors = Object.fromEntries(
-      Object.entries(newErrors).filter(([_, message]) => message !== null)
-    );
-    
+    const activeErrors = Object.fromEntries(Object.entries(newErrors).filter(([_, m]) => m !== null));
     setErrors(activeErrors);
     return Object.keys(activeErrors).length === 0;
   };
@@ -50,7 +53,7 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
         totalFiat: InputUtils.localizeStringToFloat(totalFiat), 
         pricePerUnit: InputUtils.localizeStringToFloat(pricePerUnit), 
         currency, 
-        funding: action === ACTIONS.BUY ? funding : null, 
+        funding: strategy.showFunding ? funding : null, 
         userTimestamp: timestamp 
       });
     }
@@ -58,40 +61,37 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
 
   const footer = (
     <View style={{ gap: theme.layout.standardGap }}>
-      <ThemedButton title="Speichern" onPress={handleSave} type={action === ACTIONS.BUY ? 'primary' : 'critical'} />
+      <ThemedButton 
+        title={strategy.buttonTitle} 
+        onPress={handleSave} 
+        type={strategy.buttonType} 
+      />
       <ThemedButton title="Abbrechen" onPress={onClose} type="secondary" />
     </View>
   );
 
-  const Chip = ({ label, value, current, onChange, activeColor }) => (
-    <TouchableOpacity 
-      style={[
-        { flex: 1, padding: theme.spacing.sm, borderRadius: theme.radii.md, borderWidth: theme.effects.border, borderColor: theme.colors.border, alignItems: 'center' }, 
-        current === value && { backgroundColor: activeColor || theme.colors.primary, borderColor: activeColor || theme.colors.primary }
-      ]}
-      onPress={() => onChange(value)}
-    >
-      <Text style={{ 
-        color: current === value ? theme.colors.onPrimary : theme.colors.textSubtle, 
-        fontSize: theme.typography.size.body, 
-        fontWeight: current === value ? theme.typography.weight.bold : theme.typography.weight.regular 
-      }}>{label}</Text>
-    </TouchableOpacity>
-  );
-
   return (
-    <ThemedDialog visible={visible} onClose={onClose} title={`${ticker}: Trade`} footer={footer}>
+    <ThemedDialog 
+      visible={visible} 
+      onClose={onClose} 
+      title={`${ticker}: ${strategy.headerSuffix}`} 
+      footer={footer}
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ marginBottom: theme.spacing.md }}>
-          <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption, marginBottom: theme.spacing.xs }}>Aktion</Text>
-          <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
-            <Chip label="Kauf" value={ACTIONS.BUY} current={action} onChange={setAction} />
-            <Chip label="Verkauf" value={ACTIONS.SELL} current={action} onChange={setAction} activeColor={theme.colors.error} />
-          </View>
-        </View>
+        <ThemedChipGroup 
+          label="Aktion"
+          selected={action}
+          onSelect={setAction}
+          activeColor={strategy.themeColor}
+          options={[
+            { label: 'Kauf', value: ACTIONS.BUY },
+            { label: 'Verkauf', value: ACTIONS.SELL }
+          ]}
+        />
+
         <ThemedInput label="Zeitpunkt" value={timestamp} onChangeText={setTimestamp} />
         <ThemedInput 
-          label="Betrag" 
+          label="Betrag (€)" 
           value={totalFiat} 
           onChangeText={(v) => { setTotalFiat(v); setErrors({}); }} 
           keyboardType="decimal-pad"
@@ -104,6 +104,18 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
           keyboardType="decimal-pad"
           errorMessage={errors.pricePerUnit}
         />
+        
+        {strategy.showFunding && (
+          <ThemedChipGroup 
+            label="Finanzierungsquelle"
+            selected={funding}
+            onSelect={setFunding}
+            options={[
+              { label: 'Eigenkapital', value: FUNDING_SOURCES.EQUITY },
+              { label: 'Fremdkapital', value: FUNDING_SOURCES.DEBT }
+            ]}
+          />
+        )}
       </ScrollView>
     </ThemedDialog>
   );
