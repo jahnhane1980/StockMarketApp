@@ -1,4 +1,4 @@
-// src/ui/hooks/usePortfolioManager.js - Jump-to-Ticker Support (Full-Body)
+// src/ui/hooks/usePortfolioManager.js - State Management & API Bridge (Full-Body)
 
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
@@ -13,19 +13,14 @@ import { StorageServiceFactory } from '../../store/StorageService';
 
 export const usePortfolioManager = () => {
   const [dialogs, setDialogs] = useState({
-    settings: false,
-    addAsset: false,
-    transaction: false,
-    history: false,
-    macro: false,
-    finance: false,
-    radar: false,
+    settings: false, addAsset: false, transaction: false,
+    history: false, macro: false, finance: false, radar: false,
   });
 
   const [activeTicker, setActiveTicker] = useState(null);
   const [editingAsset, setEditingAsset] = useState(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Neu: Ladezustand für API
+  const [isLoading, setIsLoading] = useState(false);
   const [assets, setAssets] = useState([]);
   const [settings, setSettings] = useState({ apiKey: '', theme: 'dark' });
   const [macroData, setMacroData] = useState(null);
@@ -38,12 +33,8 @@ export const usePortfolioManager = () => {
       if (key === 'addAsset') setEditingAsset(null);
       return;
     }
-    if (key === 'transaction' || key === 'radar') {
-      setActiveTicker(data);
-    }
-    if (key === 'addAsset' && data) {
-      setEditingAsset(data);
-    }
+    if (key === 'transaction' || key === 'radar') setActiveTicker(data);
+    if (key === 'addAsset' && data) setEditingAsset(data);
   };
 
   const loadInitialData = async (forceRefresh = false) => {
@@ -52,6 +43,7 @@ export const usePortfolioManager = () => {
       if (forceRefresh) {
         const storage = StorageServiceFactory.getService();
         await storage.removeItem('@macro_status_cache_v1');
+        await storage.removeItem('@radar_cache_v1');
       }
 
       const [loadedAssets, loadedSettings, status, finance, radar] = await Promise.all([
@@ -85,11 +77,11 @@ export const usePortfolioManager = () => {
 
   const handleForceRefresh = () => {
     Alert.alert(
-      "Analyse erzwingen",
-      "Möchtest du den Cache löschen und eine frische KI-Marktanalyse starten?",
+      "KI-Analyse erzwingen",
+      "Möchtest du die Marktdaten live neu abfragen?",
       [
         { text: "Abbrechen", style: "cancel" },
-        { text: "Starten", onPress: () => loadInitialData(true) }
+        { text: "Analysieren", onPress: () => loadInitialData(true) }
       ]
     );
   };
@@ -100,56 +92,35 @@ export const usePortfolioManager = () => {
   };
 
   const handleSaveAsset = async (asset) => {
-    try {
-      await AssetRepository.save(asset);
-      await refreshAssets();
-      toggleDialog('addAsset', false);
-    } catch (e) {
-      if (global.log) global.log.error("usePortfolioManager: Fehler beim Speichern", e);
-    }
+    await AssetRepository.save(asset);
+    await refreshAssets();
+    toggleDialog('addAsset', false);
   };
 
   const handleSaveTransaction = async (ticker, data) => {
-    try {
-      await AssetRepository.addTransaction(ticker, data);
-      await refreshAssets();
-      toggleDialog('transaction', false);
-    } catch (e) {
-      if (global.log) global.log.error("usePortfolioManager: Fehler bei Transaktion", e);
-    }
+    await AssetRepository.addTransaction(ticker, data);
+    await refreshAssets();
+    toggleDialog('transaction', false);
   };
 
   const handleUpdateFinance = async (newData) => {
-    try {
-      await FinancialRepository.saveData(newData);
-      setFinData(newData);
-      toggleDialog('finance', false);
-    } catch (e) {
-      if (global.log) global.log.error("usePortfolioManager: Fehler bei Finanzen", e);
-    }
+    await FinancialRepository.saveData(newData);
+    setFinData(newData);
+    toggleDialog('finance', false);
   };
 
   const handleUpdateSettings = async (newSet) => {
-    try {
-      await SettingsRepository.saveSettings(newSet);
-      setSettings(newSet);
-      toggleDialog('settings', false);
-    } catch (e) {
-      if (global.log) global.log.error("usePortfolioManager: Fehler bei Settings", e);
-    }
+    await SettingsRepository.saveSettings(newSet);
+    setSettings(newSet);
+    toggleDialog('settings', false);
   };
 
   return {
     state: { dialogs, activeTicker, editingAsset, fontsLoaded, assets, settings, macroData, finData, radarData, isLoading },
     actions: { 
-      toggleDialog, 
-      setEditingAsset, 
-      handleSaveAsset, 
-      handleSaveTransaction, 
-      handleUpdateFinance, 
-      handleUpdateSettings,
-      handleForceRefresh, // Fix für den Absturz
-      refreshAssets 
+      toggleDialog, setEditingAsset, handleSaveAsset, 
+      handleSaveTransaction, handleUpdateFinance, 
+      handleUpdateSettings, handleForceRefresh, refreshAssets 
     }
   };
 };
