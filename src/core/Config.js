@@ -1,18 +1,15 @@
-// src/core/Config.js - Update: Gemini 2.5 Flash Sync (Full-Body)
+// src/core/Config.js - Update: Dynamischer Test-Modus (Full-Body)
 
 import { PRODUCTION_WORKER_CONFIG, TEST_WORKER_CONFIG } from './Constants';
 
-// FIX: Auf true gesetzt, um den MockDataService zu nutzen und API-Limits während der Entwicklung zu schonen
-const IS_TEST_MODE = true; 
-
 export const Config = {
   GOOGLE_API: {
-    // v1beta ist notwendig für die neuesten Flash-Modelle und JSON-Features
     URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-    KEY: "", // Bleibt leer für GitHub, Eintragung nur via App-Settings
+    KEY: "", 
     PROMPT_PATH: 'assets/prompt_stock_analyser.js'
   },
-  TEST: IS_TEST_MODE,
+  // Wird nun initial durch den usePortfolioManager aus den Settings gesetzt
+  TEST: true, 
   ADMIN_EMAIL: "jahnhane@gmail.com",
-  WORKER: IS_TEST_MODE ? TEST_WORKER_CONFIG : PRODUCTION_WORKER_CONFIG
+  WORKER: PRODUCTION_WORKER_CONFIG
 };

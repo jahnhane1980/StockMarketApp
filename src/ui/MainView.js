@@ -18,6 +18,7 @@ import StockItem from './components/StockItem';
 import MacroDetailsDialog from './components/MacroDetailsDialog';
 import FinancialDialog from './components/FinancialDialog';
 import StockRadarDialog from './components/StockRadarDialog';
+import ConfirmRefreshDialog from './components/ConfirmRefreshDialog';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -30,7 +31,6 @@ export default function MainView() {
   const currentTheme = settings.theme === 'light' ? LightTheme : DarkTheme;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Wenn ein Fehler vorliegt, Fallback auf UNKNOWN für den Market-Indicator
   const marketScore = macroData?.error ? null : macroData?.action_summary?.global_ui_score;
   const marketVm = AssetPresenter.getMarketViewModel(marketScore, currentTheme);
   
@@ -92,6 +92,17 @@ export default function MainView() {
             </TouchableOpacity>
             
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              {/* NEU: Indikator für Live vs. Mock Modus */}
+              <View style={{ padding: 4, marginRight: 2 }}>
+                {fontsLoaded && (
+                  <Ionicons 
+                    name={settings.testMode ? "flash-off" : "flash"} 
+                    size={18} 
+                    color={settings.testMode ? currentTheme.colors.warning : currentTheme.colors.success} 
+                  />
+                )}
+              </View>
+
               <TouchableOpacity onPress={actions.handleForceRefresh} style={styles.refreshBtn}>
                 <Ionicons name="refresh-outline" size={16} color={currentTheme.colors.warning} />
               </TouchableOpacity>
@@ -109,7 +120,6 @@ export default function MainView() {
 
           <ScrollView contentContainerStyle={{ padding: currentTheme.spacing.md }}>
             
-            {/* KI Fehler Feedback Box */}
             {macroData?.error && (
               <View style={styles.errorBox}>
                 {fontsLoaded && <Ionicons name="warning" size={24} color={currentTheme.colors.error} />}
@@ -155,10 +165,11 @@ export default function MainView() {
           <AddAssetDialog visible={dialogs.addAsset} initialAsset={state.editingAsset} onClose={() => actions.toggleDialog('addAsset', false)} onSave={actions.handleSaveAsset} />
           <TransactionDialog visible={dialogs.transaction} ticker={state.activeTicker} onClose={() => actions.toggleDialog('transaction', false)} onSave={actions.handleSaveTransaction} />
           <HistoryDialog visible={dialogs.history} onClose={() => actions.toggleDialog('history', false)} />
-          {/* Macro Dialog nur öffnen, wenn kein Error vorliegt, sonst crasht der Parser dort eventuell */}
           {!macroData?.error && <MacroDetailsDialog visible={dialogs.macro} data={macroData} onClose={() => actions.toggleDialog('macro', false)} />}
           <FinancialDialog visible={dialogs.finance} initialData={finData} onClose={() => actions.toggleDialog('finance', false)} onSave={actions.handleUpdateFinance} />
           <StockRadarDialog visible={dialogs.radar} radarData={radarData} initialTicker={activeTicker} onClose={() => actions.toggleDialog('radar', false)} onAddAsset={(data) => actions.toggleDialog('addAsset', true, data)} />
+          
+          <ConfirmRefreshDialog visible={dialogs.confirmRefresh} onClose={() => actions.toggleDialog('confirmRefresh', false)} onConfirm={actions.executeForceRefresh} />
         </SafeAreaView>
       </SafeAreaProvider>
     </ThemeContext.Provider>

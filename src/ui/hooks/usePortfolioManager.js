@@ -1,7 +1,6 @@
 // src/ui/hooks/usePortfolioManager.js - State Management & API Bridge (Full-Body)
 
 import { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { AssetRepository } from '../../store/AssetRepository';
@@ -16,6 +15,7 @@ export const usePortfolioManager = () => {
   const [dialogs, setDialogs] = useState({
     settings: false, addAsset: false, transaction: false,
     history: false, macro: false, finance: false, radar: false,
+    confirmRefresh: false
   });
 
   const [activeTicker, setActiveTicker] = useState(null);
@@ -23,7 +23,10 @@ export const usePortfolioManager = () => {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [assets, setAssets] = useState([]);
-  const [settings, setSettings] = useState({ apiKey: '', theme: 'dark' });
+  
+  // FIX: Default-Werte für settings angepasst inkl. testMode
+  const [settings, setSettings] = useState({ apiKey: '', theme: 'dark', testMode: true });
+  
   const [macroData, setMacroData] = useState(null);
   const [finData, setFinData] = useState({ currentCash: 0, debtAmount: 0 });
   const [radarData, setRadarData] = useState(null); 
@@ -43,19 +46,17 @@ export const usePortfolioManager = () => {
       setIsLoading(true);
       
       if (forceRefresh) {
-        // FIX: Sauberes Löschen des Caches über die eigene Methode des Repositories
         await MacroRepository.clearCache();
         const storage = StorageServiceFactory.getService();
         await storage.removeItem('@radar_cache_v1');
       }
 
-      // FIX: 1. Settings zwingend zuerst laden
       const loadedSettings = await SettingsRepository.getSettings();
-      
-      // FIX: 2. API-Key in der Config synchronisieren BEVOR Repositories feuern
       Config.GOOGLE_API.KEY = loadedSettings.apiKey;
+      
+      // NEU: Config.TEST mit den Settings synchronisieren, bevor Repositories feuern
+      Config.TEST = loadedSettings.testMode;
 
-      // 3. Erst jetzt die abhängigen Daten (inklusive KI-API Requests) parallel laden
       const [loadedAssets, status, finance, radar] = await Promise.all([
         AssetRepository.getAll(),
         MacroRepository.getStatus(),
@@ -85,14 +86,12 @@ export const usePortfolioManager = () => {
   }, []);
 
   const handleForceRefresh = () => {
-    Alert.alert(
-      "KI-Analyse erzwingen",
-      "Möchtest du die Marktdaten live neu abfragen? Dies dauert einige Sekunden.",
-      [
-        { text: "Abbrechen", style: "cancel" },
-        { text: "Analysieren", onPress: () => loadInitialData(true) }
-      ]
-    );
+    toggleDialog('confirmRefresh', true);
+  };
+
+  const executeForceRefresh = () => {
+    toggleDialog('confirmRefresh', false);
+    loadInitialData(true);
   };
 
   const refreshAssets = async () => {
@@ -121,8 +120,10 @@ export const usePortfolioManager = () => {
   const handleUpdateSettings = async (newSet) => {
     await SettingsRepository.saveSettings(newSet);
     
-    // FIX: API-Key sofort aktualisieren, wenn er in den Settings geändert wird
     Config.GOOGLE_API.KEY = newSet.apiKey;
+    
+    // NEU: Test-Modus sofort global aktualisieren
+    Config.TEST = newSet.testMode;
     
     setSettings(newSet);
     toggleDialog('settings', false);
@@ -133,7 +134,7 @@ export const usePortfolioManager = () => {
     actions: { 
       toggleDialog, setEditingAsset, handleSaveAsset, 
       handleSaveTransaction, handleUpdateFinance, 
-      handleUpdateSettings, handleForceRefresh, refreshAssets 
+      handleUpdateSettings, handleForceRefresh, executeForceRefresh, refreshAssets 
     }
   };
 };

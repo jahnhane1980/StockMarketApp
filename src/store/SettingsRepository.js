@@ -8,6 +8,7 @@ const storage = StorageServiceFactory.getService();
 const DEFAULT_SETTINGS = {
   apiKey: '',
   theme: 'dark',
+  testMode: true, // NEU: Standardmäßig im sicheren Mock-Modus
 };
 
 export class SettingsRepository {
@@ -27,7 +28,6 @@ export class SettingsRepository {
       const newSettings = { ...currentSettings, ...settings };
       await storage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
       
-      // FIX: Korrekter Zugriff auf global.log
       if (global.log) global.log.info("SettingsRepository: Einstellungen erfolgreich gespeichert.");
       return newSettings;
     } catch (error) {
