@@ -1,4 +1,4 @@
-// src/api/GoogleApiService.js - Echte API-Anbindung (Full-Body)
+// src/api/GoogleApiService.js - Real Gemini Integration (Full-Body Sync)
 
 import { Config } from '../core/Config';
 import { Asset } from 'expo-asset';
@@ -15,21 +15,20 @@ export class GoogleApiService {
       const response = await fetch(asset.localUri || asset.uri);
       const content = await response.text();
       
-      // Deine Debug-Logs (jetzt als Info für bessere Sichtbarkeit)
       if (global.log) {
         global.log.info("Prompt-Asset geladen:", asset.uri);
-        global.log.info("Prompt-Inhalt (Teil):", content.substring(0, 50) + "...");
+        global.log.info("Prompt-Inhalt (Vorschau):", content.substring(0, 40) + "...");
       }
       
       return content;
     } catch (error) {
       if (global.log) global.log.error("GoogleApiService: Prompt-Fehler", error.message);
-      return "Analysiere das Portfolio und antworte im JSON-Format.";
+      return "Analysiere das Portfolio und antworte strikt im JSON-Format.";
     }
   }
 
   /**
-   * Sendet die Daten an Gemini (Flash 1.5)
+   * Sendet die Portfolio-Daten an Gemini (V1.5 Flash)
    */
   async getMacroScore(inputData) {
     if (!Config.GOOGLE_API.KEY || Config.GOOGLE_API.KEY.length < 5) {
@@ -37,17 +36,22 @@ export class GoogleApiService {
     }
 
     try {
+      // 1. Lokalen Prompt laden
       const systemPrompt = await this._fetchSystemPrompt();
 
+      // 2. Payload gemäß deinem Interface vorbereiten
       const payload = {
         contents: [{
           parts: [{
             text: `${systemPrompt}\n\nINPUT_DATA: ${JSON.stringify(inputData)}`
           }]
         }],
-        generationConfig: { response_mime_type: "application/json" }
+        generationConfig: {
+          response_mime_type: "application/json"
+        }
       };
 
+      // 3. API-Call an Google
       const response = await fetch(`${Config.GOOGLE_API.URL}?key=${Config.GOOGLE_API.KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,6 +65,8 @@ export class GoogleApiService {
       const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
       
       if (!rawText) throw new Error("INVALID_AI_RESPONSE");
+
+      // Markdown-Bereinigung und Parsing
       return JSON.parse(rawText.replace(/```json|```/g, '').trim());
       
     } catch (error) {
@@ -70,6 +76,6 @@ export class GoogleApiService {
   }
 
   async getStockDetails(ticker) {
-    return { ticker, price: "0.00", logic_notes: ["Verwende Macro-Analyse."] };
+    return { ticker, price: "0.00", logic_notes: ["Verwende Macro-Score Analyse."] };
   }
 }
