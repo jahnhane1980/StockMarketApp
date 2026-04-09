@@ -1,6 +1,6 @@
-// src/theme/Theme.js - Semantisches Design System
+// src/theme/Theme.js - Semantisches Design System (Update: standardGap)
 
-const grid = 4; // Basis-Einheit für alle Abstände
+const grid = 4; // Basis-Einheit
 
 const sharedTokens = {
   spacing: {
@@ -35,6 +35,7 @@ const sharedTokens = {
     icon: { sm: 18, md: 24, lg: 32 },
     headerHeight: 60,
     modalWidth: '92%',
+    standardGap: grid * 3, // NEU: 12px Abstand für Buttons und Reihen
   },
   effects: {
     border: 1,

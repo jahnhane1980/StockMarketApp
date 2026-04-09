@@ -1,4 +1,4 @@
-// src/store/MacroRepository.js - Logger Fix (Full-Body)
+// src/store/MacroRepository.js - Data Only (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 import { DataServiceFactory } from '../api/DataService';
@@ -22,22 +22,13 @@ export class MacroRepository {
       
       if (remoteData && (!macroData || remoteData.timestamp !== macroData.timestamp)) {
         await storage.setItem(CACHE_KEY, JSON.stringify(remoteData));
-        // FIX: Zugriff über global.log
         if (global.log) global.log.info("MacroRepository: Neue Daten empfangen.");
         return remoteData;
       }
       return macroData;
     } catch (error) {
-      // FIX: Zugriff über global.log
       if (global.log) global.log.error("MacroRepository: Fehler", error);
       return null;
     }
-  }
-
-  static getColorForScore(score, theme) {
-    if (!score) return theme.colors.textSubtle;
-    if (score >= 7.1) return theme.colors.success;
-    if (score >= 3.6) return theme.colors.warning;
-    return theme.colors.error;
   }
 }

@@ -1,4 +1,4 @@
-// src/core/Constants.js - Erweiterte Konstanten (Full-Body)
+// src/core/Constants.js - Vollständige System-Konstanten (Final Clean-up)
 
 export const ASSET_STATUS = {
   WATCH: 'WATCH',
@@ -7,8 +7,8 @@ export const ASSET_STATUS = {
 };
 
 export const ASSET_TYPES = {
-  A: { id: 'A', label: 'A: Quality / Growth' },
-  B: { id: 'B', label: 'B: Tactical / RSI' },
+  A: { id: 'A', label: 'A: Growth' },
+  B: { id: 'B', label: 'B: Big Cap' },
   C: { id: 'C', label: 'C: Macro / Crypto' },
   D: { id: 'D', label: 'D: High Risk' }
 };
@@ -26,4 +26,24 @@ export const CURRENCIES = {
 export const FUNDING_SOURCES = {
   EQUITY: 'EK',
   DEBT: 'FK'
+};
+
+// Schwellenwerte für Markt-Scores
+export const MARKET_THRESHOLDS = {
+  BULLISH: 7.1,
+  NEUTRAL: 3.6
+};
+
+// NEU: Markt-Status Konstanten
+export const MARKET_STATUS = {
+  BULLISH: 'BULLISH',
+  NEUTRAL: 'NEUTRAL',
+  BEARISH: 'BEARISH',
+  UNKNOWN: 'UNKNOWN'
+};
+
+// NEU: Metrik-Zustände aus der API
+export const METRIC_STATES = {
+  INACTIVE: 'INACTIVE',
+  ACTIVE: 'ACTIVE'
 };

@@ -1,8 +1,51 @@
-// src/ui/presenters/AssetPresenter.js - Strategy-Pattern Extension (Full-Body)
+// src/ui/presenters/AssetPresenter.js - No Strings, Only Constants (Full-Body)
 
-import { ACTIONS } from '../../core/Constants';
+import { ACTIONS, MARKET_THRESHOLDS, MARKET_STATUS, METRIC_STATES } from '../../core/Constants';
 
 export const AssetPresenter = {
+  /**
+   * Zentrale Score-Auswertung
+   */
+  getMarketStatus: (score) => {
+    if (score === undefined || score === null) return MARKET_STATUS.UNKNOWN;
+    if (score >= MARKET_THRESHOLDS.BULLISH) return MARKET_STATUS.BULLISH;
+    if (score >= MARKET_THRESHOLDS.NEUTRAL) return MARKET_STATUS.NEUTRAL;
+    return MARKET_STATUS.BEARISH;
+  },
+
+  /**
+   * Visuelle Logik für den Markt-Indikator (Toolbar)
+   */
+  getMarketViewModel: (score, theme) => {
+    const status = AssetPresenter.getMarketStatus(score);
+    
+    const config = {
+      [MARKET_STATUS.BULLISH]: { color: theme.colors.success, label: 'Bullish' },
+      [MARKET_STATUS.NEUTRAL]: { color: theme.colors.warning, label: 'Neutral' },
+      [MARKET_STATUS.BEARISH]: { color: theme.colors.error, label: 'Bearish' },
+      [MARKET_STATUS.UNKNOWN]: { color: theme.colors.textSubtle, label: 'Unbekannt' }
+    };
+
+    return config[status];
+  },
+
+  /**
+   * Visuelle Logik für die detaillierte Makro-Ansicht
+   */
+  getMacroDetailsViewModel: (data, theme) => {
+    if (!data) return null;
+    const status = AssetPresenter.getMarketStatus(data.action_summary?.global_ui_score);
+
+    return {
+      scoreColor: status === MARKET_STATUS.BULLISH ? theme.colors.success : theme.colors.warning,
+      urgencyColor: theme.colors.warning, 
+      goldStressColor: data.metrics_validation?.macro?.gold_stress === METRIC_STATES.INACTIVE 
+        ? theme.colors.success 
+        : theme.colors.error,
+      phaseLabel: `${data.cycling_navigator?.current_phase || '---'} ➔ ${data.cycling_navigator?.recommendation || '---'}`
+    };
+  },
+
   /**
    * Visuelle Logik für StockItems
    */
@@ -35,43 +78,12 @@ export const AssetPresenter = {
    */
   getTransactionStrategy: (action, theme) => {
     const isBuy = action === ACTIONS.BUY;
-    
     return {
       themeColor: isBuy ? theme.colors.primary : theme.colors.error,
       buttonType: isBuy ? 'primary' : 'critical',
       buttonTitle: isBuy ? 'Kauf speichern' : 'Verkauf speichern',
       headerSuffix: isBuy ? 'Kauf' : 'Verkauf',
       showFunding: isBuy
-    };
-  },
-
-  /**
-   * Visuelle Logik für den Markt-Indikator (Toolbar)
-   */
-  getMarketViewModel: (score, theme) => {
-    if (score === undefined || score === null) {
-      return { color: theme.colors.textSubtle, label: 'Unbekannt' };
-    }
-    const isBullish = score >= 7.1;
-    const isNeutral = score >= 3.6;
-
-    return {
-      color: isBullish ? theme.colors.success : (isNeutral ? theme.colors.warning : theme.colors.error),
-      label: isBullish ? 'Bullish' : (isNeutral ? 'Neutral' : 'Bearish')
-    };
-  },
-
-  /**
-   * Visuelle Logik für die detaillierte Makro-Ansicht
-   */
-  getMacroDetailsViewModel: (data, theme) => {
-    if (!data) return null;
-
-    return {
-      scoreColor: data.action_summary?.global_ui_score >= 7.1 ? theme.colors.success : theme.colors.warning,
-      urgencyColor: theme.colors.warning, 
-      goldStressColor: data.metrics_validation?.macro?.gold_stress === 'INACTIVE' ? theme.colors.success : theme.colors.error,
-      phaseLabel: `${data.cycling_navigator?.current_phase || '---'} ➔ ${data.cycling_navigator?.recommendation || '---'}`
     };
   },
 
