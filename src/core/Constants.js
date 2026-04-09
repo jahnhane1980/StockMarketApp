@@ -40,7 +40,13 @@ export const MARKET_STATUS = {
   UNKNOWN: 'UNKNOWN'
 };
 
-// NEU: Cache-Dauer für die KI-Analyse (4 Stunden)
+// NEU: Metrik-Zustände für die UI-Logik (Fix für TypeError im AssetPresenter)
+export const METRIC_STATES = {
+  INACTIVE: 'INACTIVE',
+  ACTIVE: 'ACTIVE'
+};
+
+// Cache-Dauer für die KI-Analyse (4 Stunden)
 export const MACRO_CACHE_DURATION = 4 * 60 * 60 * 1000;
 
 // Hintergrund-Worker Konfigurationen

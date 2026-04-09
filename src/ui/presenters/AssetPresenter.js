@@ -1,6 +1,6 @@
 // src/ui/presenters/AssetPresenter.js - No Strings, Only Constants (Full-Body)
 
-import { ACTIONS, MARKET_THRESHOLDS, MARKET_STATUS, METRIC_STATES } from '../../core/Constants';
+import { ACTIONS, MARKET_THRESHOLDS, MARKET_STATUS, METRIC_STATES, ASSET_STATUS } from '../../core/Constants';
 
 export const AssetPresenter = {
   /**
@@ -35,11 +35,12 @@ export const AssetPresenter = {
   getMacroDetailsViewModel: (data, theme) => {
     if (!data) return null;
     const status = AssetPresenter.getMarketStatus(data.action_summary?.global_ui_score);
+    const inactiveState = METRIC_STATES?.INACTIVE || 'INACTIVE';
 
     return {
       scoreColor: status === MARKET_STATUS.BULLISH ? theme.colors.success : theme.colors.warning,
       urgencyColor: theme.colors.warning, 
-      goldStressColor: data.metrics_validation?.macro?.gold_stress === METRIC_STATES.INACTIVE 
+      goldStressColor: data.metrics_validation?.macro?.gold_stress === inactiveState 
         ? theme.colors.success 
         : theme.colors.error,
       phaseLabel: `${data.cycling_navigator?.current_phase || '---'} ➔ ${data.cycling_navigator?.recommendation || '---'}`
@@ -47,11 +48,12 @@ export const AssetPresenter = {
   },
 
   /**
-   * Visuelle Logik für StockItems
+   * Visuelle Logik für StockItems (Inkl. Status-Icon WATCH/OWNED)
    */
   getAssetViewModel: (asset, theme) => {
     const isCritical = asset.type === 'D';
     const isWarning = asset.type === 'C';
+    const isOwned = asset.status === ASSET_STATUS.OWNED;
     
     let statusColor = theme.colors.primary;
     let iconName = null;
@@ -70,6 +72,9 @@ export const AssetPresenter = {
       statusColor: statusColor,
       statusIcon: iconName,
       showStatusIcon: !!iconName,
+      // Status Icon für Watchlist vs Portfolio
+      portfolioIcon: isOwned ? "briefcase-outline" : "eye-outline",
+      portfolioIconColor: isOwned ? theme.colors.success : theme.colors.textSubtle
     };
   },
 

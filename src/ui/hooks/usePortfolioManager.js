@@ -1,78 +1,36 @@
-// src/ui/hooks/usePortfolioManager.js - Full Logic & TTL Support (Full-Body)
+// src/ui/hooks/usePortfolioManager.js - Jump-to-Ticker Support (Full-Body)
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import { Config } from '../../core/Config';
 import { AssetRepository } from '../../store/AssetRepository';
 import { SettingsRepository } from '../../store/SettingsRepository';
 import { MacroRepository } from '../../store/MacroRepository';
 import { FinancialRepository } from '../../store/FinancialRepository';
 import { RadarRepository } from '../../store/RadarRepository'; 
+import { StorageServiceFactory } from '../../store/StorageService';
 
 export const usePortfolioManager = () => {
   const [dialogs, setDialogs] = useState({
-    settings: false, addAsset: false, transaction: false, history: false, macro: false, finance: false, radar: false,
+    settings: false,
+    addAsset: false,
+    transaction: false,
+    history: false,
+    macro: false,
+    finance: false,
+    radar: false,
   });
 
-  const [isLoading, setIsLoading] = useState(false);
   const [activeTicker, setActiveTicker] = useState(null);
   const [editingAsset, setEditingAsset] = useState(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Neu: Ladezustand für API
   const [assets, setAssets] = useState([]);
   const [settings, setSettings] = useState({ apiKey: '', theme: 'dark' });
   const [macroData, setMacroData] = useState(null);
   const [finData, setFinData] = useState({ currentCash: 0, debtAmount: 0 });
   const [radarData, setRadarData] = useState(null); 
-
-  const refreshMacro = useCallback(async () => {
-    if (!Config.GOOGLE_API.KEY) return;
-    setIsLoading(true);
-    try {
-      const status = await MacroRepository.getStatus();
-      setMacroData(status);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleForceRefresh = async () => {
-    await MacroRepository.clearCache();
-    await refreshMacro();
-  };
-
-  useEffect(() => {
-    async function loadInitialData() {
-      try {
-        await Font.loadAsync(Ionicons.font);
-        setFontsLoaded(true);
-        
-        // 1. Zuerst Settings für API-Key laden
-        const loadedSettings = await SettingsRepository.getSettings();
-        setSettings(loadedSettings);
-        Config.GOOGLE_API.KEY = loadedSettings.apiKey;
-
-        // 2. Dann lokale Daten parallel laden
-        const [loadedAssets, finance, radar] = await Promise.all([
-          AssetRepository.getAll(),
-          FinancialRepository.getData(),
-          RadarRepository.getData()
-        ]);
-
-        setAssets(loadedAssets);
-        setFinData(finance);
-        setRadarData(radar);
-
-        // 3. Makro-Analyse erst jetzt (mit Key) starten
-        if (Config.GOOGLE_API.KEY) {
-          await refreshMacro();
-        }
-      } catch (e) {
-        if (global.log) global.log.error("usePortfolioManager: Initialisierungsfehler", e);
-      }
-    }
-    loadInitialData();
-  }, [refreshMacro]);
 
   const toggleDialog = (key, visible, data = null) => {
     setDialogs(prev => ({ ...prev, [key]: visible }));
@@ -80,8 +38,60 @@ export const usePortfolioManager = () => {
       if (key === 'addAsset') setEditingAsset(null);
       return;
     }
-    if (key === 'transaction' || key === 'radar') setActiveTicker(data);
-    if (key === 'addAsset' && data) setEditingAsset(data);
+    if (key === 'transaction' || key === 'radar') {
+      setActiveTicker(data);
+    }
+    if (key === 'addAsset' && data) {
+      setEditingAsset(data);
+    }
+  };
+
+  const loadInitialData = async (forceRefresh = false) => {
+    try {
+      setIsLoading(true);
+      if (forceRefresh) {
+        const storage = StorageServiceFactory.getService();
+        await storage.removeItem('@macro_status_cache_v1');
+      }
+
+      const [loadedAssets, loadedSettings, status, finance, radar] = await Promise.all([
+        AssetRepository.getAll(),
+        SettingsRepository.getSettings(),
+        MacroRepository.getStatus(),
+        FinancialRepository.getData(),
+        RadarRepository.getData()
+      ]);
+
+      setAssets(loadedAssets);
+      setSettings(loadedSettings);
+      setMacroData(status);
+      setFinData(finance);
+      setRadarData(radar);
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Ladefehler", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    async function init() {
+      await Font.loadAsync(Ionicons.font);
+      setFontsLoaded(true);
+      await loadInitialData();
+    }
+    init();
+  }, []);
+
+  const handleForceRefresh = () => {
+    Alert.alert(
+      "Analyse erzwingen",
+      "Möchtest du den Cache löschen und eine frische KI-Marktanalyse starten?",
+      [
+        { text: "Abbrechen", style: "cancel" },
+        { text: "Starten", onPress: () => loadInitialData(true) }
+      ]
+    );
   };
 
   const refreshAssets = async () => {
@@ -94,8 +104,9 @@ export const usePortfolioManager = () => {
       await AssetRepository.save(asset);
       await refreshAssets();
       toggleDialog('addAsset', false);
-      await refreshMacro();
-    } catch (e) { if (global.log) global.log.error("Fehler", e); }
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Fehler beim Speichern", e);
+    }
   };
 
   const handleSaveTransaction = async (ticker, data) => {
@@ -103,8 +114,9 @@ export const usePortfolioManager = () => {
       await AssetRepository.addTransaction(ticker, data);
       await refreshAssets();
       toggleDialog('transaction', false);
-      await refreshMacro();
-    } catch (e) { if (global.log) global.log.error("Fehler", e); }
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Fehler bei Transaktion", e);
+    }
   };
 
   const handleUpdateFinance = async (newData) => {
@@ -112,25 +124,32 @@ export const usePortfolioManager = () => {
       await FinancialRepository.saveData(newData);
       setFinData(newData);
       toggleDialog('finance', false);
-      await refreshMacro();
-    } catch (e) { if (global.log) global.log.error("Fehler", e); }
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Fehler bei Finanzen", e);
+    }
   };
 
   const handleUpdateSettings = async (newSet) => {
     try {
       await SettingsRepository.saveSettings(newSet);
       setSettings(newSet);
-      Config.GOOGLE_API.KEY = newSet.apiKey;
       toggleDialog('settings', false);
-      if (newSet.apiKey) await refreshMacro();
-    } catch (e) { if (global.log) global.log.error("Settings Fehler", e); }
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Fehler bei Settings", e);
+    }
   };
 
   return {
     state: { dialogs, activeTicker, editingAsset, fontsLoaded, assets, settings, macroData, finData, radarData, isLoading },
     actions: { 
-      toggleDialog, setEditingAsset, handleSaveAsset, handleSaveTransaction, 
-      handleUpdateFinance, handleUpdateSettings, refreshAssets, refreshMacro, handleForceRefresh 
+      toggleDialog, 
+      setEditingAsset, 
+      handleSaveAsset, 
+      handleSaveTransaction, 
+      handleUpdateFinance, 
+      handleUpdateSettings,
+      handleForceRefresh, // Fix für den Absturz
+      refreshAssets 
     }
   };
 };
