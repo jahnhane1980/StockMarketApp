@@ -1,4 +1,4 @@
-// src/ui/hooks/usePortfolioManager.js - Auto-Reload & Cache Invalidation (Full-Body)
+// src/ui/hooks/usePortfolioManager.js - Update: Support Actions (Full-Body)
 
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
@@ -8,6 +8,7 @@ import { SettingsRepository } from '../../store/SettingsRepository';
 import { MacroRepository } from '../../store/MacroRepository';
 import { FinancialRepository } from '../../store/FinancialRepository';
 import { RadarRepository } from '../../store/RadarRepository'; 
+import { LogService } from '../../api/LogService'; // NEU
 import { Config } from '../../core/Config';
 
 export const usePortfolioManager = () => {
@@ -40,12 +41,10 @@ export const usePortfolioManager = () => {
   const loadInitialData = async (forceRefresh = false) => {
     try {
       setIsLoading(true);
-      
       if (forceRefresh) {
         await MacroRepository.clearCache();
         await RadarRepository.clearCache();
       }
-
       const loadedSettings = await SettingsRepository.getSettings();
       Config.GOOGLE_API.KEY = loadedSettings.apiKey;
       Config.TEST = loadedSettings.testMode;
@@ -78,55 +77,43 @@ export const usePortfolioManager = () => {
     init();
   }, []);
 
-  const handleForceRefresh = () => {
-    toggleDialog('confirmRefresh', true);
+  const handleSendLogs = async () => {
+    await LogService.sendCurrentLog();
   };
 
-  const executeForceRefresh = () => {
-    toggleDialog('confirmRefresh', false);
-    loadInitialData(true);
-  };
-
-  const refreshAssets = async () => {
-    const data = await AssetRepository.getAll();
-    setAssets([...data]);
-  };
+  const handleForceRefresh = () => toggleDialog('confirmRefresh', true);
+  const executeForceRefresh = () => { toggleDialog('confirmRefresh', false); loadInitialData(true); };
+  const refreshAssets = async () => { const data = await AssetRepository.getAll(); setAssets([...data]); };
 
   const handleSaveAsset = async (asset) => {
     await AssetRepository.save(asset);
-    await MacroRepository.clearCache(); // NEU: KI-Cache zwingend löschen
+    await MacroRepository.clearCache();
     await refreshAssets();
     toggleDialog('addAsset', false);
   };
 
   const handleSaveTransaction = async (ticker, data) => {
     await AssetRepository.addTransaction(ticker, data);
-    await MacroRepository.clearCache(); // NEU: KI-Cache zwingend löschen
+    await MacroRepository.clearCache();
     await refreshAssets();
     toggleDialog('transaction', false);
   };
 
   const handleUpdateFinance = async (newData) => {
     await FinancialRepository.saveData(newData);
-    await MacroRepository.clearCache(); // NEU: KI-Cache zwingend löschen
+    await MacroRepository.clearCache();
     setFinData(newData);
     toggleDialog('finance', false);
   };
 
   const handleUpdateSettings = async (newSet) => {
     const modeChanged = settings.testMode !== newSet.testMode;
-    
     await SettingsRepository.saveSettings(newSet);
     Config.GOOGLE_API.KEY = newSet.apiKey;
     Config.TEST = newSet.testMode;
-    
     setSettings(newSet);
     toggleDialog('settings', false);
-
-    if (modeChanged) {
-      if (global.log) global.log.info("System-Modus gewechselt. Lade Arbeitsbereich neu...");
-      loadInitialData(false); 
-    }
+    if (modeChanged) loadInitialData(false); 
   };
 
   return {
@@ -134,7 +121,8 @@ export const usePortfolioManager = () => {
     actions: { 
       toggleDialog, setEditingAsset, handleSaveAsset, 
       handleSaveTransaction, handleUpdateFinance, 
-      handleUpdateSettings, handleForceRefresh, executeForceRefresh, refreshAssets 
+      handleUpdateSettings, handleForceRefresh, executeForceRefresh, refreshAssets,
+      handleSendLogs // NEU
     }
   };
 };

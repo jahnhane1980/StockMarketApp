@@ -1,16 +1,21 @@
-// src/ui/components/SettingsDialog.js - Refactored with Test-Mode Toggle (Full-Body)
+// src/ui/components/SettingsDialog.js - Support-Button Integration (Full-Body)
 
 import React, { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { InputUtils } from '../../core/InputUtils'; 
+import { usePortfolioManager } from '../hooks/usePortfolioManager'; // NEU für Actions
 import ThemedDialog from '../common/ThemedDialog';
 import ThemedButton from '../common/ThemedButton';
 import ThemedInput from '../common/ThemedInput';
 import ThemedChipGroup from '../common/ThemedChipGroup';
+import { Ionicons } from '@expo/vector-icons';
 
 const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
   const theme = useTheme();
+  // Wir holen uns die handleSendLogs Aktion
+  const { actions } = usePortfolioManager(); 
+  
   const [apiKey, setApiKey] = useState('');
   const [selectedTheme, setSelectedTheme] = useState('dark');
   const [testMode, setTestMode] = useState(true);
@@ -67,9 +72,30 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
           { label: 'Mock (Dummy Daten)', value: true }
         ]}
       />
-      <Text style={{ color: theme.colors.textSubtle, fontSize: 10, marginTop: -8, marginBottom: 16 }}>
-        {testMode ? "Es werden lokale JSON-Dateien verwendet." : "Achtung: Erzeugt echte API-Kosten/Limits."}
-      </Text>
+      
+      <View style={{ marginTop: theme.spacing.sm, paddingBottom: theme.spacing.md }}>
+        <Text style={{ color: theme.colors.textSubtle, fontSize: 10, marginBottom: 16 }}>
+          {testMode ? "Es werden lokale JSON-Dateien verwendet." : "Achtung: Erzeugt echte API-Kosten/Limits."}
+        </Text>
+
+        {/* Support Sektion */}
+        <TouchableOpacity 
+          onPress={actions.handleSendLogs}
+          style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            gap: 8, 
+            padding: 12, 
+            backgroundColor: theme.colors.surface,
+            borderRadius: theme.radii.sm,
+            borderWidth: 1,
+            borderColor: theme.colors.border
+          }}
+        >
+          <Ionicons name="bug-outline" size={18} color={theme.colors.warning} />
+          <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body }}>Support-Log jetzt senden</Text>
+        </TouchableOpacity>
+      </View>
     </ThemedDialog>
   );
 };
