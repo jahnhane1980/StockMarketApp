@@ -1,4 +1,4 @@
-// src/api/BackgroundWorkerService.js - Permissions & Registration (Full-Body)
+// src/api/BackgroundWorkerService.js - Robust Permissions & Worker Logic
 
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -8,15 +8,25 @@ import { RadarRepository } from '../store/RadarRepository';
 
 export const BackgroundWorkerService = {
   /**
-   * Fordert Berechtigungen an und konfiguriert das Notification-Handling
+   * Robuste Berechtigungsabfrage (Check -> Request)
    */
   setupNotifications: async () => {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') {
-      if (global.log) global.log.warn("Notifications: Berechtigung wurde verweigert!");
-      return;
+    // 1. Prüfen, ob wir bereits Berechtigungen haben
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    // 2. Falls nicht granted, fordern wir sie explizit an
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
     }
 
+    if (finalStatus !== 'granted') {
+      if (global.log) global.log.warn("Notifications: Berechtigung wurde verweigert!");
+      return false;
+    }
+
+    // Handler konfigurieren
     await Notifications.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowAlert: true,
@@ -24,10 +34,13 @@ export const BackgroundWorkerService = {
         shouldSetBadge: true,
       }),
     });
+    
+    if (global.log) global.log.info("Notifications: Berechtigungen erfolgreich konfiguriert.");
+    return true;
   },
 
   /**
-   * Definiert den Task für den TaskManager
+   * Definiert die Logik des Tasks
    */
   defineMarketTask: () => {
     TaskManager.defineTask(Config.WORKER.TASK_NAME, async () => {
@@ -36,10 +49,9 @@ export const BackgroundWorkerService = {
         const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         
         let isTimeForScan = false;
-        
         if (Config.TEST) {
           isTimeForScan = true;
-          if (global.log) global.log.info(`TEST-MODE: Worker-Lauf um ${currentTime}`);
+          if (global.log) global.log.info(`TEST-RUN: Worker aktiv um ${currentTime}`);
         } else {
           isTimeForScan = Config.WORKER.SCAN_TIMES.some(t => {
             const [h, m] = t.split(':');
@@ -73,16 +85,16 @@ export const BackgroundWorkerService = {
   },
 
   /**
-   * Registriert den Task beim Betriebssystem (Der "Einschalter")
+   * Registriert den Task beim Betriebssystem
    */
   registerMarketTask: async () => {
     try {
       await BackgroundFetch.registerTaskAsync(Config.WORKER.TASK_NAME, {
-        minimumInterval: Config.WORKER.FETCH_INTERVAL, // 60s im Test-Mode
+        minimumInterval: Config.WORKER.FETCH_INTERVAL, 
         stopOnTerminate: false,
         startOnIdle: false,
       });
-      if (global.log) global.log.info(`Worker '${Config.WORKER.TASK_NAME}' registriert.`);
+      if (global.log) global.log.info(`Worker '${Config.WORKER.TASK_NAME}' erfolgreich registriert.`);
     } catch (err) {
       if (global.log) global.log.error("Worker-Registrierung fehlgeschlagen:", err);
     }
