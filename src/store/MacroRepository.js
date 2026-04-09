@@ -1,32 +1,35 @@
-// src/store/MacroRepository.js - V34 TTL Caching (Full-Body)
+// src/store/MacroRepository.js - Dynamischer Cache Key + V34 Payload (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 import { DataServiceFactory } from '../api/DataService';
 import { AssetRepository } from './AssetRepository';
 import { FinancialRepository } from './FinancialRepository';
 import { MACRO_CACHE_DURATION } from '../core/Constants';
+import { Config } from '../core/Config';
 
-const CACHE_KEY = '@macro_status_cache_v2';
+// NEU: Dynamischer Cache-Key, damit Live- und Mock-Caches sich nicht überschreiben
+const getCacheKey = () => Config.TEST ? '@macro_status_cache_test_v2' : '@macro_status_cache_live_v2';
 
 export class MacroRepository {
   static async getStatus() {
     const storage = StorageServiceFactory.getService();
     const dataService = DataServiceFactory.getService();
+    const currentKey = getCacheKey(); // Ermitteln, ob Test- oder Live-Cache
 
     try {
       // 1. Lokalen Cache prüfen
-      const cachedData = await storage.getItem(CACHE_KEY);
+      const cachedData = await storage.getItem(currentKey);
       if (cachedData) {
         const { timestamp, data } = JSON.parse(cachedData);
         const age = Date.now() - timestamp;
 
         if (age < MACRO_CACHE_DURATION) {
-          if (global.log) global.log.info(`MacroRepository: Nutze Cache (Alter: ${Math.round(age/60000)} Min)`);
+          if (global.log) global.log.info(`MacroRepository: Nutze Cache [${currentKey}] (Alter: ${Math.round(age/60000)} Min)`);
           return data;
         }
       }
 
-      // 2. Daten für den V34 Request sammeln
+      // 2. Daten für den V34 Request sammeln (Deine essenzielle Logik bleibt unangetastet!)
       const [assets, fin] = await Promise.all([
         AssetRepository.getAll(),
         FinancialRepository.getData()
@@ -51,11 +54,11 @@ export class MacroRepository {
         }))
       };
 
-      // 3. API Request
+      // 3. API Request mit aggregierten Daten
       const remoteData = await dataService.getMacroScore(inputData);
       
       if (remoteData && !remoteData.error) {
-        await storage.setItem(CACHE_KEY, JSON.stringify({
+        await storage.setItem(currentKey, JSON.stringify({
           timestamp: Date.now(),
           data: remoteData
         }));
@@ -64,7 +67,8 @@ export class MacroRepository {
       throw new Error("KI lieferte keine validen Daten.");
     } catch (error) {
       if (global.log) global.log.error("MacroRepository Error:", error.message);
-      const lastResort = await storage.getItem(CACHE_KEY);
+      // Fallback: Wenn API fehlschlägt, letzten Cache (Test oder Live) laden, auch wenn abgelaufen
+      const lastResort = await storage.getItem(currentKey);
       if (lastResort) {
         const { data } = JSON.parse(lastResort);
         return { ...data, error: `Netzwerkfehler: ${error.message}` };
@@ -75,7 +79,8 @@ export class MacroRepository {
 
   static async clearCache() {
     const storage = StorageServiceFactory.getService();
-    await storage.removeItem(CACHE_KEY);
-    if (global.log) global.log.info("MacroRepository: Cache manuell gelöscht.");
+    const currentKey = getCacheKey();
+    await storage.removeItem(currentKey);
+    if (global.log) global.log.info(`MacroRepository: Cache manuell gelöscht [${currentKey}].`);
   }
 }

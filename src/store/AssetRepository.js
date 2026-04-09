@@ -1,24 +1,28 @@
-// src/store/AssetRepository.js - Lazy Storage mit Seed-Logik (Full-Body)
+// src/store/AssetRepository.js - Sandbox vs. Live Storage Integration (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 import { ACTIONS } from '../core/Constants';
+import { Config } from '../core/Config';
 import initialPortfolioMock from '../../mock/InitialPortfolio.json';
 
-const STORAGE_KEY = '@assets_v1';
-const STORAGE_KEY_ARCHIVE = '@assets_archived_v1';
+// NEU: Dynamische Storage Keys
+const getStorageKey = () => Config.TEST ? '@assets_v1_test' : '@assets_v1_live';
+const getArchiveKey = () => Config.TEST ? '@assets_archived_v1_test' : '@assets_archived_v1_live';
 
 export class AssetRepository {
   static async getAll() {
     const storage = StorageServiceFactory.getService();
+    const currentKey = getStorageKey();
     try {
-      const data = await storage.getItem(STORAGE_KEY);
+      const data = await storage.getItem(currentKey);
       if (data) {
         return JSON.parse(data);
-      } else {
-        // NEU: Seeding beim allerersten Start
-        await storage.setItem(STORAGE_KEY, JSON.stringify(initialPortfolioMock));
-        if (global.log) global.log.info("AssetRepository: Initiales Portfolio (Seed) geladen.");
+      } else if (Config.TEST) {
+        await storage.setItem(currentKey, JSON.stringify(initialPortfolioMock));
+        if (global.log) global.log.info(`AssetRepository: Seed geladen in [${currentKey}]`);
         return initialPortfolioMock;
+      } else {
+        return [];
       }
     } catch (error) { 
       return []; 
@@ -47,6 +51,7 @@ export class AssetRepository {
 
   static async addTransaction(ticker, transactionData) {
     const storage = StorageServiceFactory.getService();
+    const currentKey = getStorageKey();
     let assets = await this.getAll();
     const assetIndex = assets.findIndex(a => a.ticker === ticker);
     if (assetIndex === -1) return assets;
@@ -55,12 +60,13 @@ export class AssetRepository {
     if (!asset.transactions) asset.transactions = [];
     asset.transactions.push({ ...transactionData, id: Date.now().toString(), recordedAt: new Date().toISOString() });
     
-    await storage.setItem(STORAGE_KEY, JSON.stringify(assets));
+    await storage.setItem(currentKey, JSON.stringify(assets));
     return assets;
   }
 
   static async save(asset) {
     const storage = StorageServiceFactory.getService();
+    const currentKey = getStorageKey();
     const assets = await this.getAll();
     const existingIndex = assets.findIndex(a => a.ticker === asset.ticker);
     if (existingIndex >= 0) {
@@ -68,21 +74,23 @@ export class AssetRepository {
     } else {
       assets.push({ ...asset, transactions: [] });
     }
-    await storage.setItem(STORAGE_KEY, JSON.stringify(assets));
+    await storage.setItem(currentKey, JSON.stringify(assets));
     return assets;
   }
 
   static async remove(ticker) {
     const storage = StorageServiceFactory.getService();
+    const currentKey = getStorageKey();
     let assets = await this.getAll();
     assets = assets.filter(a => a.ticker !== ticker);
-    await storage.setItem(STORAGE_KEY, JSON.stringify(assets));
+    await storage.setItem(currentKey, JSON.stringify(assets));
     return assets;
   }
 
   static async getArchived() {
     const storage = StorageServiceFactory.getService();
-    const data = await storage.getItem(STORAGE_KEY_ARCHIVE);
+    const currentArchiveKey = getArchiveKey();
+    const data = await storage.getItem(currentArchiveKey);
     return data ? JSON.parse(data) : [];
   }
 }

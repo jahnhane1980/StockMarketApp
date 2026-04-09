@@ -1,4 +1,4 @@
-// src/ui/MainView.js - UI Refinement & Radar Restoration (Full-Body)
+// src/ui/MainView.js - UI Refinement & Dynamic Asset Stats (Full-Body)
 
 import React, { useRef, useEffect } from 'react';
 import { StatusBar, StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, UIManager, Animated, ActivityIndicator } from 'react-native';
@@ -92,7 +92,6 @@ export default function MainView() {
             </TouchableOpacity>
             
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              {/* NEU: Indikator für Live vs. Mock Modus */}
               <View style={{ padding: 4, marginRight: 2 }}>
                 {fontsLoaded && (
                   <Ionicons 
@@ -145,16 +144,31 @@ export default function MainView() {
             )}
 
             <Text style={styles.sectionLabel}>Your Portfolio</Text>
-            {assets.map(asset => (
-              <StockItem 
-                key={asset.ticker} 
-                asset={asset}
-                price="..." changePercent="..." trend="up" fontsLoaded={fontsLoaded}
-                onDelete={async t => { await AssetRepository.remove(t); actions.refreshAssets(); }}
-                onEdit={t => { actions.setEditingAsset(assets.find(a => a.ticker === t)); actions.toggleDialog('addAsset', true); }}
-                onInvest={t => actions.toggleDialog('transaction', true, t)}
-              />
-            ))}
+            {assets.map(asset => {
+              // NEU: Berechne echte Statistiken aus den Transaktionen
+              const stats = AssetRepository.getPositionStats(asset)?.EUR;
+              const hasPosition = stats && stats.totalShares > 0;
+              
+              // Formatting
+              const displayVal = hasPosition ? `${stats.totalFiat.toFixed(2)} €` : "0.00 €";
+              const displaySub = hasPosition 
+                ? `${stats.totalShares.toFixed(2)} Units | Ø ${stats.avgPrice.toFixed(2)} €` 
+                : (asset.status === 'WATCH' ? 'Watchlist' : 'Keine Position');
+
+              return (
+                <StockItem 
+                  key={asset.ticker} 
+                  asset={asset}
+                  price={displayVal} 
+                  changePercent={displaySub} 
+                  trend={hasPosition ? "up" : "neutral"} 
+                  fontsLoaded={fontsLoaded}
+                  onDelete={async t => { await AssetRepository.remove(t); actions.refreshAssets(); }}
+                  onEdit={t => { actions.setEditingAsset(assets.find(a => a.ticker === t)); actions.toggleDialog('addAsset', true); }}
+                  onInvest={t => actions.toggleDialog('transaction', true, t)}
+                />
+              );
+            })}
           </ScrollView>
 
           <TouchableOpacity style={styles.fab} onPress={() => actions.toggleDialog('addAsset', true)}>

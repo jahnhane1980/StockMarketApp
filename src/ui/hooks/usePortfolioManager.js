@@ -1,4 +1,4 @@
-// src/ui/hooks/usePortfolioManager.js - State Management & API Bridge (Full-Body)
+// src/ui/hooks/usePortfolioManager.js - Auto-Reload bei Moduswechsel (Full-Body)
 
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
@@ -8,7 +8,6 @@ import { SettingsRepository } from '../../store/SettingsRepository';
 import { MacroRepository } from '../../store/MacroRepository';
 import { FinancialRepository } from '../../store/FinancialRepository';
 import { RadarRepository } from '../../store/RadarRepository'; 
-import { StorageServiceFactory } from '../../store/StorageService';
 import { Config } from '../../core/Config';
 
 export const usePortfolioManager = () => {
@@ -23,10 +22,7 @@ export const usePortfolioManager = () => {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [assets, setAssets] = useState([]);
-  
-  // FIX: Default-Werte für settings angepasst inkl. testMode
   const [settings, setSettings] = useState({ apiKey: '', theme: 'dark', testMode: true });
-  
   const [macroData, setMacroData] = useState(null);
   const [finData, setFinData] = useState({ currentCash: 0, debtAmount: 0 });
   const [radarData, setRadarData] = useState(null); 
@@ -46,15 +42,13 @@ export const usePortfolioManager = () => {
       setIsLoading(true);
       
       if (forceRefresh) {
+        // FIX: Saubere Clear-Aufrufe statt hart codierter Storage-Keys
         await MacroRepository.clearCache();
-        const storage = StorageServiceFactory.getService();
-        await storage.removeItem('@radar_cache_v1');
+        await RadarRepository.clearCache();
       }
 
       const loadedSettings = await SettingsRepository.getSettings();
       Config.GOOGLE_API.KEY = loadedSettings.apiKey;
-      
-      // NEU: Config.TEST mit den Settings synchronisieren, bevor Repositories feuern
       Config.TEST = loadedSettings.testMode;
 
       const [loadedAssets, status, finance, radar] = await Promise.all([
@@ -118,15 +112,21 @@ export const usePortfolioManager = () => {
   };
 
   const handleUpdateSettings = async (newSet) => {
+    // NEU: Prüfen, ob der Schalter umgelegt wurde
+    const modeChanged = settings.testMode !== newSet.testMode;
+    
     await SettingsRepository.saveSettings(newSet);
-    
     Config.GOOGLE_API.KEY = newSet.apiKey;
-    
-    // NEU: Test-Modus sofort global aktualisieren
     Config.TEST = newSet.testMode;
     
     setSettings(newSet);
     toggleDialog('settings', false);
+
+    // NEU: Wenn Modus gewechselt, sofortiges Neuladen aus der neuen Storage-Schublade
+    if (modeChanged) {
+      if (global.log) global.log.info("System-Modus gewechselt. Lade Arbeitsbereich neu...");
+      loadInitialData(false); // false, damit wir den Cache der neuen Seite nicht sofort löschen
+    }
   };
 
   return {
