@@ -1,142 +1,68 @@
-// components/SettingsDialog.js - Der Einstellungs-Dialog als Modal-Komponente
+// components/SettingsDialog.js - Refactored with Shared Components
 
 import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from 'react-native';
-import { Theme } from '../Theme';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useTheme } from '../ThemeContext';
+import ThemedDialog from './common/ThemedDialog';
+import ThemedButton from './common/ThemedButton';
+import ThemedInput from './common/ThemedInput';
 
-const SettingsDialog = ({ visible, onClose, onSave, currentApiKey }) => {
-  const [focusedField, setFocusedField] = useState(null);
+const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
+  const theme = useTheme();
   const [apiKey, setApiKey] = useState('');
+  const [selectedTheme, setSelectedTheme] = useState('dark');
 
-  // Wenn der Dialog geöffnet wird, setzen wir den Text im Feld auf den aktuellen Key aus der App.js
   useEffect(() => {
-    if (visible) {
-      setApiKey(currentApiKey || '');
+    if (visible && currentSettings) {
+      setApiKey(currentSettings.apiKey || '');
+      setSelectedTheme(currentSettings.theme || 'dark');
     }
-  }, [visible, currentApiKey]);
+  }, [visible, currentSettings]);
 
-  const ThemeTextInput = ({ label, placeholder, ...props }) => {
-    const isFocused = focusedField === label;
-    return (
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>{label}</Text>
-        <TextInput
-          style={[styles.textInput, isFocused && styles.textInputFocused]}
-          placeholder={placeholder}
-          placeholderTextColor={Theme.colors.textSubtle}
-          onFocus={() => setFocusedField(label)}
-          onBlur={() => setFocusedField(null)}
-          {...props}
-        />
-      </View>
-    );
-  };
+  const ThemeChip = ({ label, value }) => (
+    <TouchableOpacity 
+      style={[
+        { 
+          borderColor: theme.colors.borderSubtle,
+          borderWidth: theme.effects.borderWidthThin,
+          borderRadius: theme.radii.standard,
+          padding: theme.spacing.sm,
+          flex: 1,
+          alignItems: 'center'
+        },
+        selectedTheme === value && { backgroundColor: theme.colors.brandPrimary, borderColor: theme.colors.brandPrimary }
+      ]} 
+      onPress={() => setSelectedTheme(value)}
+    >
+      <Text style={[
+        { color: theme.colors.textSubtle, fontSize: theme.typography.size.sm },
+        selectedTheme === value && { color: theme.colors.textOnPrimary, fontWeight: theme.typography.weight.bold }
+      ]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const footer = (
+    <View style={{ gap: theme.layout.standardGap }}>
+      <ThemedButton title="Save" onPress={() => onSave({ apiKey, theme: selectedTheme })} type="primary" />
+      <ThemedButton title="Cancel" onPress={onClose} type="secondary" />
+    </View>
+  );
 
   return (
-    <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.dialogContainer}>
-            <Text style={styles.dialogTitle}>Settings</Text>
-            
-            <ThemeTextInput 
-              label="Google API Key" 
-              placeholder="AIzaSy..." 
-              autoFocus={true} 
-              value={apiKey}
-              onChangeText={setApiKey}
-            />
-            
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonPrimary} onPress={() => {
-                if (onSave) onSave({ apiKey });
-              }}>
-                <Text style={styles.buttonPrimaryText}>Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonSecondary} onPress={onClose}>
-                <Text style={styles.buttonSecondaryText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </TouchableOpacity>
-    </Modal>
+    <ThemedDialog visible={visible} onClose={onClose} title="Settings" footer={footer}>
+      <ThemedInput label="Google API Key" value={apiKey} onChangeText={setApiKey} placeholder="AIzaSy..." />
+      
+      <View style={{ marginBottom: theme.spacing.md }}>
+        <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.xs, marginBottom: theme.spacing.xs }}>App Theme</Text>
+        <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
+          <ThemeChip label="Dark Mode" value="dark" />
+          <ThemeChip label="Light Mode" value="light" />
+        </View>
+      </View>
+    </ThemedDialog>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: Theme.colors.bgOverlay, 
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dialogContainer: {
-    width: '90%',
-    maxWidth: 400,
-    backgroundColor: Theme.colors.bgMain, 
-    borderRadius: Theme.radii.dialog,
-    borderWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle, 
-    padding: Theme.spacing.lg,
-    shadowColor: Theme.colors.shadowDefault,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: Theme.effects.shadowOpacityDialog,
-    shadowRadius: Theme.effects.shadowRadiusDialog,
-    elevation: 5,
-  },
-  dialogTitle: {
-    fontSize: Theme.typography.size.xl,
-    fontWeight: Theme.typography.weight.bold,
-    color: Theme.colors.textPrimary,
-    marginBottom: Theme.spacing.lg,
-    textAlign: 'center',
-  },
-  inputContainer: { marginBottom: Theme.spacing.md },
-  inputLabel: {
-    fontSize: Theme.typography.size.xs,
-    color: Theme.colors.textSubtle,
-    marginBottom: Theme.spacing.xs,
-  },
-  textInput: {
-    color: Theme.colors.textPrimary,
-    borderWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle, 
-    borderRadius: Theme.radii.input,
-    padding: Theme.spacing.sm,
-    fontSize: Theme.typography.size.sm,
-  },
-  textInputFocused: { borderColor: Theme.colors.inputFocus },
-  buttonContainer: { marginTop: Theme.spacing.lg, gap: Theme.spacing.md },
-  buttonPrimary: {
-    backgroundColor: Theme.colors.brandPrimary,
-    paddingVertical: Theme.spacing.sm,
-    borderRadius: Theme.radii.standard,
-    alignItems: 'center',
-  },
-  buttonPrimaryText: {
-    color: Theme.colors.textOnPrimary,
-    fontSize: Theme.typography.size.md,
-    fontWeight: Theme.typography.weight.bold,
-  },
-  buttonSecondary: {
-    backgroundColor: Theme.colors.bgSurface, 
-    paddingVertical: Theme.spacing.sm,
-    borderRadius: Theme.radii.standard,
-    alignItems: 'center',
-    borderWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle,
-  },
-  buttonSecondaryText: { color: Theme.colors.textPrimary, fontSize: Theme.typography.size.sm },
-});
 
 export default SettingsDialog;

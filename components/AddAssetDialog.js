@@ -1,38 +1,24 @@
-// components/AddAssetDialog.js - Dialog für Asset-Stammdaten (Full-Body)
+// components/AddAssetDialog.js - Refactored with Shared Components
 
 import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  Keyboard,
-  ScrollView,
-} from 'react-native';
-import { Theme } from '../Theme';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useTheme } from '../ThemeContext';
 import { ASSET_STATUS, ASSET_TYPES } from '../Constants';
+import ThemedDialog from './common/ThemedDialog';
+import ThemedButton from './common/ThemedButton';
+import ThemedInput from './common/ThemedInput';
 
 const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
+  const theme = useTheme();
   const [ticker, setTicker] = useState('');
   const [status, setStatus] = useState(ASSET_STATUS.WATCH); 
   const [type, setType] = useState(ASSET_TYPES.A); 
 
   useEffect(() => {
     if (visible) {
-      if (initialAsset) {
-        if (global.log) log.info(`AddAssetDialog: Bearbeite Asset ${initialAsset.ticker}`);
-        setTicker(initialAsset.ticker || '');
-        setStatus(initialAsset.status || ASSET_STATUS.WATCH);
-        setType(initialAsset.type || ASSET_TYPES.A);
-      } else {
-        if (global.log) log.info("AddAssetDialog: Neues Asset anlegen");
-        setTicker('');
-        setStatus(ASSET_STATUS.WATCH);
-        setType(ASSET_TYPES.A);
-      }
+      setTicker(initialAsset?.ticker || '');
+      setStatus(initialAsset?.status || ASSET_STATUS.WATCH);
+      setType(initialAsset?.type || ASSET_TYPES.A);
     }
   }, [visible, initialAsset]);
 
@@ -40,10 +26,24 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
     const isSelected = current === value;
     return (
       <TouchableOpacity
-        style={[styles.chip, isSelected && styles.chipSelected]}
+        style={[
+          { 
+            borderColor: theme.colors.borderSubtle, 
+            borderWidth: theme.effects.borderWidthThin, 
+            borderRadius: theme.radii.standard, 
+            paddingVertical: theme.spacing.sm,
+            flex: 1,
+            alignItems: 'center'
+          }, 
+          isSelected && { backgroundColor: theme.colors.brandPrimary, borderColor: theme.colors.brandPrimary }
+        ]}
         onPress={() => onChange(value)}
       >
-        <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+        <Text style={{ 
+          fontSize: theme.typography.size.sm,
+          color: isSelected ? theme.colors.textOnPrimary : theme.colors.textSubtle, 
+          fontWeight: isSelected ? theme.typography.weight.bold : theme.typography.weight.normal 
+        }}>
           {label}
         </Text>
       </TouchableOpacity>
@@ -51,149 +51,46 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
   };
 
   const handleSave = () => {
-    if (!ticker.trim()) {
-      if (global.log) log.warn("AddAssetDialog: Speicher-Versuch ohne Ticker abgebrochen.");
-      return; 
-    }
-
-    const assetData = { 
-      ticker: ticker.toUpperCase(), 
-      status, 
-      type 
-    };
-    
-    if (onSave) {
-      onSave(assetData);
-    }
+    if (!ticker.trim()) return;
+    onSave({ ticker: ticker.toUpperCase(), status, type });
   };
 
-  const isEditing = !!initialAsset;
+  const footer = (
+    <View style={{ gap: theme.layout.standardGap }}>
+      <ThemedButton title="Asset speichern" onPress={handleSave} type="primary" />
+      <ThemedButton title="Abbrechen" onPress={onClose} type="secondary" />
+    </View>
+  );
 
   return (
-    <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.dialogContainer}>
-            <Text style={styles.dialogTitle}>
-              {isEditing ? 'Basisdaten bearbeiten' : 'Neues Asset hinzufügen'}
-            </Text>
-            
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Ticker / Symbol</Text>
-                <TextInput
-                  style={[styles.textInput, isEditing && styles.textInputDisabled]}
-                  placeholder="z.B. BTC oder AAPL"
-                  placeholderTextColor={Theme.colors.textSubtle}
-                  value={ticker}
-                  onChangeText={setTicker}
-                  autoCapitalize="characters"
-                  editable={!isEditing} 
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Status</Text>
-                <View style={styles.chipRow}>
-                  <SelectionChip label="Beobachten" value={ASSET_STATUS.WATCH} current={status} onChange={setStatus} />
-                  <SelectionChip label="Portfolio" value={ASSET_STATUS.OWNED} current={status} onChange={setStatus} />
-                </View>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Asset Typ</Text>
-                <View style={styles.chipRow}>
-                  <SelectionChip label="A (Growth)" value={ASSET_TYPES.A} current={type} onChange={setType} />
-                  <SelectionChip label="B (Mega)" value={ASSET_TYPES.B} current={type} onChange={setType} />
-                </View>
-                <View style={[styles.chipRow, { marginTop: Theme.spacing.sm }]}>
-                  <SelectionChip label="C (Commodity)" value={ASSET_TYPES.C} current={type} onChange={setType} />
-                  <SelectionChip label="D (Hebel)" value={ASSET_TYPES.D} current={type} onChange={setType} />
-                </View>
-              </View>
-            </ScrollView>
-            
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonPrimary} onPress={handleSave}>
-                <Text style={styles.buttonPrimaryText}>Asset speichern</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonSecondary} onPress={onClose}>
-                <Text style={styles.buttonSecondaryText}>Abbrechen</Text>
-              </TouchableOpacity>
-            </View>
+    <ThemedDialog visible={visible} onClose={onClose} title={initialAsset ? 'Basisdaten bearbeiten' : 'Neues Asset hinzufügen'} footer={footer}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <ThemedInput 
+          label="Ticker / Symbol" 
+          value={ticker} 
+          onChangeText={setTicker} 
+          editable={!initialAsset} 
+          style={!!initialAsset && { opacity: theme.effects.opacityDisabled }}
+        />
+        
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.sm, marginBottom: theme.spacing.xs }}>Status</Text>
+          <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
+            <SelectionChip label="Beobachten" value={ASSET_STATUS.WATCH} current={status} onChange={setStatus} />
+            <SelectionChip label="Portfolio" value={ASSET_STATUS.OWNED} current={status} onChange={setStatus} />
           </View>
-        </TouchableWithoutFeedback>
-      </TouchableOpacity>
-    </Modal>
+        </View>
+
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.sm, marginBottom: theme.spacing.xs }}>Asset Typ</Text>
+          <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
+            <SelectionChip label="A (Growth)" value={ASSET_TYPES.A} current={type} onChange={setType} />
+            <SelectionChip label="B (Mega)" value={ASSET_TYPES.B} current={type} onChange={setType} />
+          </View>
+        </View>
+      </ScrollView>
+    </ThemedDialog>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: { 
-    flex: 1, 
-    backgroundColor: Theme.colors.bgOverlay, 
-    justifyContent: 'flex-end' 
-  },
-  dialogContainer: { 
-    backgroundColor: Theme.colors.bgMain, 
-    borderTopLeftRadius: Theme.radii.dialog, 
-    borderTopRightRadius: Theme.radii.dialog, 
-    padding: Theme.spacing.lg, 
-    maxHeight: Theme.layout.dialogMaxHeight,
-    borderTopWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle
-  },
-  dialogTitle: { 
-    fontSize: Theme.typography.size.xl, 
-    fontWeight: Theme.typography.weight.bold, 
-    color: Theme.colors.textPrimary, 
-    marginBottom: Theme.spacing.lg, 
-    textAlign: 'center' 
-  },
-  inputGroup: { marginBottom: Theme.spacing.md },
-  inputLabel: { 
-    fontSize: Theme.typography.size.sm, 
-    color: Theme.colors.textSubtle, 
-    marginBottom: Theme.spacing.xs 
-  },
-  textInput: { 
-    color: Theme.colors.textPrimary, 
-    borderWidth: Theme.effects.borderWidthThin, 
-    borderColor: Theme.colors.borderSubtle, 
-    borderRadius: Theme.radii.input, 
-    padding: Theme.spacing.sm,
-    fontSize: Theme.typography.size.md
-  },
-  textInputDisabled: { backgroundColor: Theme.colors.bgSurface, color: Theme.colors.textSubtle },
-  chipRow: { flexDirection: 'row', gap: Theme.spacing.sm },
-  chip: { 
-    flex: 1, 
-    paddingVertical: Theme.spacing.sm, 
-    borderWidth: Theme.effects.borderWidthThin, 
-    borderColor: Theme.colors.borderSubtle, 
-    borderRadius: Theme.radii.standard, 
-    alignItems: 'center' 
-  },
-  chipSelected: { backgroundColor: Theme.colors.brandPrimary, borderColor: Theme.colors.brandPrimary },
-  chipText: { color: Theme.colors.textSubtle, fontSize: Theme.typography.size.sm },
-  chipTextSelected: { color: Theme.colors.textOnPrimary },
-  buttonContainer: { marginTop: Theme.spacing.md, gap: Theme.spacing.md },
-  buttonPrimary: { 
-    backgroundColor: Theme.colors.brandPrimary, 
-    paddingVertical: Theme.spacing.md, 
-    borderRadius: Theme.radii.standard, 
-    alignItems: 'center' 
-  },
-  buttonPrimaryText: { color: Theme.colors.textOnPrimary, fontWeight: Theme.typography.weight.bold },
-  buttonSecondary: { 
-    backgroundColor: Theme.colors.bgSurface, 
-    paddingVertical: Theme.spacing.md, 
-    borderRadius: Theme.radii.standard, 
-    alignItems: 'center', 
-    borderWidth: Theme.effects.borderWidthThin, 
-    borderColor: Theme.colors.borderSubtle 
-  },
-  buttonSecondaryText: { color: Theme.colors.textPrimary }
-});
 
 export default AddAssetDialog;

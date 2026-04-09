@@ -1,31 +1,22 @@
-// components/HistoryDialog.js - Transaktionshistorie mit Gruppierung und Filter
+// components/HistoryDialog.js - UI Atom Refactor
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  SectionList,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-} from 'react-native';
-import { Theme } from '../Theme';
+import { Modal, View, Text, SectionList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useTheme } from '../ThemeContext';
 import { AssetRepository } from '../services/AssetRepository';
 import { ACTIONS } from '../Constants';
+import ThemedInput from './common/ThemedInput'; // Shared Input
 
 const HistoryDialog = ({ visible, onClose }) => {
+  const theme = useTheme();
   const [sections, setSections] = useState([]);
   const [filter, setFilter] = useState('');
 
-  // Fix: loadHistory in useCallback eingekapselt
   const loadHistory = useCallback(async () => {
     try {
       const active = await AssetRepository.getAll();
       const archived = await AssetRepository.getArchived();
       let allTx = [];
-
       [...active, ...archived].forEach(asset => {
         if (asset.transactions) {
           asset.transactions.forEach(tx => {
@@ -33,15 +24,10 @@ const HistoryDialog = ({ visible, onClose }) => {
           });
         }
       });
-
       if (filter) {
-        allTx = allTx.filter(tx => 
-          tx.ticker.toLowerCase().includes(filter.toLowerCase())
-        );
+        allTx = allTx.filter(tx => tx.ticker.toLowerCase().includes(filter.toLowerCase()));
       }
-
       allTx.sort((a, b) => new Date(b.recordedAt) - new Date(a.recordedAt));
-
       const groups = {};
       allTx.forEach(tx => {
         const date = new Date(tx.recordedAt);
@@ -49,128 +35,55 @@ const HistoryDialog = ({ visible, onClose }) => {
         if (!groups[key]) groups[key] = [];
         groups[key].push(tx);
       });
+      setSections(Object.keys(groups).map(key => ({ title: key, data: groups[key] })));
+    } catch (e) { if (global.log) log.error("History: Load error", e); }
+  }, [filter]);
 
-      const sectionData = Object.keys(groups).map(key => ({
-        title: key,
-        data: groups[key]
-      }));
-
-      setSections(sectionData);
-    } catch (e) {
-      if (global.log) log.error("HistoryDialog: Fehler beim Laden der Historie", e);
-    }
-  }, [filter]); // Abhängigkeit auf filter
-
-  useEffect(() => {
-    if (visible) {
-      loadHistory();
-    }
-  }, [visible, loadHistory]); // Fix: loadHistory hier als Abhängigkeit möglich
+  useEffect(() => { if (visible) loadHistory(); }, [visible, loadHistory]);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Transaktions-Historie</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bgMain }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: theme.spacing.md, borderBottomWidth: theme.effects.borderWidthThin, borderColor: theme.colors.borderSubtle }}>
+          <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.lg, fontWeight: theme.typography.weight.bold }}>Transaktions-Historie</Text>
           <TouchableOpacity onPress={onClose}>
-            <Text style={styles.closeText}>Schließen</Text>
+            <Text style={{ color: theme.colors.brandPrimary, fontWeight: theme.typography.weight.medium }}>Schließen</Text>
           </TouchableOpacity>
         </View>
 
-        <TextInput 
-          style={styles.searchBar} 
-          placeholder="Ticker filtern..." 
-          placeholderTextColor={Theme.colors.textSubtle}
-          value={filter}
-          onChangeText={setFilter}
-          autoCapitalize="characters"
-        />
+        <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md }}>
+          <ThemedInput 
+            placeholder="Ticker filtern..." 
+            value={filter} 
+            onChangeText={setFilter} 
+          />
+        </View>
 
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={({ section: { title } }) => (
-            <View style={styles.sectionHeaderBg}>
-              <Text style={styles.sectionHeader}>{title}</Text>
+            <View style={{ backgroundColor: theme.colors.bgSurface, padding: theme.spacing.xs, paddingHorizontal: theme.spacing.md }}>
+              <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.xxs, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase' }}>{title}</Text>
             </View>
           )}
           renderItem={({ item }) => (
-            <View style={styles.txRow}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: theme.spacing.md, borderBottomWidth: theme.effects.borderWidthThin, borderColor: theme.colors.borderSubtle }}>
               <View>
-                <Text style={styles.txTicker}>{item.ticker}</Text>
-                <Text style={styles.txDate}>{item.userTimestamp || '---'}</Text>
+                <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.md, fontWeight: theme.typography.weight.bold }}>{item.ticker}</Text>
+                <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.xs }}>{item.userTimestamp || '---'}</Text>
               </View>
-              <View style={styles.txValues}>
-                <Text style={[
-                  styles.txAction, 
-                  { color: item.action === ACTIONS.BUY ? Theme.colors.brandPrimary : Theme.colors.statusCritical }
-                ]}>
-                  {item.action}
-                </Text>
-                <Text style={styles.txAmount}>
-                  {item.totalFiat.toFixed(2)} {item.currency}
-                </Text>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={{ fontSize: theme.typography.size.xs, fontWeight: theme.typography.weight.bold, marginBottom: 2, color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical }}>{item.action}</Text>
+                <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }}>{item.totalFiat.toFixed(2)} {item.currency}</Text>
               </View>
             </View>
           )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>Keine Transaktionen gefunden.</Text>
-          }
         />
       </SafeAreaView>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Theme.colors.bgMain },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center',
-    padding: Theme.spacing.md,
-    borderBottomWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle
-  },
-  title: { 
-    color: Theme.colors.textPrimary, 
-    fontSize: Theme.typography.size.lg, 
-    fontWeight: Theme.typography.weight.bold 
-  },
-  closeText: { color: Theme.colors.brandPrimary, fontWeight: Theme.typography.weight.medium },
-  searchBar: { 
-    backgroundColor: Theme.colors.bgSurface, 
-    color: Theme.colors.textPrimary, 
-    padding: Theme.spacing.sm, 
-    borderRadius: Theme.radii.standard, 
-    margin: Theme.spacing.md,
-    fontSize: Theme.typography.size.md
-  },
-  sectionHeaderBg: { backgroundColor: Theme.colors.bgSurface, padding: Theme.spacing.xs, paddingHorizontal: Theme.spacing.md },
-  sectionHeader: { 
-    color: Theme.colors.textSubtle, 
-    fontSize: Theme.typography.size.xs, 
-    textTransform: 'uppercase',
-    fontWeight: Theme.typography.weight.bold
-  },
-  txRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    padding: Theme.spacing.md, 
-    borderBottomWidth: Theme.effects.borderWidthThin, 
-    borderColor: Theme.colors.borderSubtle 
-  },
-  txTicker: { 
-    color: Theme.colors.textPrimary, 
-    fontSize: Theme.typography.size.md, 
-    fontWeight: Theme.typography.weight.bold 
-  },
-  txDate: { color: Theme.colors.textSubtle, fontSize: Theme.typography.size.xs, marginTop: 2 },
-  txValues: { alignItems: 'flex-end' },
-  txAction: { fontSize: Theme.typography.size.xs, fontWeight: Theme.typography.weight.bold, marginBottom: 2 },
-  txAmount: { color: Theme.colors.textPrimary, fontSize: Theme.typography.size.sm },
-  emptyText: { color: Theme.colors.textSubtle, textAlign: 'center', marginTop: Theme.spacing.xl }
-});
 
 export default HistoryDialog;

@@ -1,19 +1,14 @@
-// components/StockItem.js - Vollständige Darstellung inklusive Performance-Daten
+// components/StockItem.js - Reaktives Theme (Full-Body)
 
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  LayoutAnimation,
-} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, LayoutAnimation } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Theme } from '../Theme';
+import { useTheme } from '../ThemeContext';
 import { ASSET_STATUS } from '../Constants';
 import { AssetRepository } from '../services/AssetRepository';
 
 const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend, fontsLoaded, status, onDelete, onEdit, onInvest, transactions }) => {
+  const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
 
   const toggleExpand = () => {
@@ -21,77 +16,58 @@ const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend,
     setExpanded(!expanded);
   };
 
-  // Statistiken dynamisch aus den übergebenen Transaktionen berechnen
   const stats = AssetRepository.getPositionStats({ transactions });
 
+  const dynamicStyles = {
+    card: { backgroundColor: theme.colors.bgSurface, borderRadius: theme.radii.standard, borderColor: theme.colors.borderSubtle },
+    ticker: { color: theme.colors.textPrimary, fontSize: theme.typography.size.md },
+    price: { color: theme.colors.textPrimary, fontSize: theme.typography.size.sm },
+    label: { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs },
+    value: { color: theme.colors.textPrimary },
+    border: { borderColor: theme.colors.borderSubtle }
+  };
+
   return (
-    <TouchableOpacity 
-      style={styles.stockItemCard} 
-      onPress={toggleExpand} 
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={[styles.stockItemCard, dynamicStyles.card]} onPress={toggleExpand} activeOpacity={0.7}>
       <View style={styles.stockRow}>
-        <Text style={[
-          styles.stockTicker,
-          isCritical && { color: Theme.colors.statusCritical },
-          isWarning && { color: Theme.colors.statusAlert }
-        ]}>
-          {ticker}
-        </Text>
-        
+        <Text style={[styles.stockTicker, dynamicStyles.ticker, isCritical && { color: theme.colors.statusCritical }, isWarning && { color: theme.colors.statusAlert }]}>{ticker}</Text>
         <View style={styles.statusRow}>
-          <Text style={styles.stockPrice}>{price}</Text>
-          <Text style={[
-            styles.changePercent, 
-            (isWarning || isCritical) && { color: isCritical ? Theme.colors.statusCritical : Theme.colors.statusAlert },
-          ]}>
+          <Text style={dynamicStyles.price}>{price}</Text>
+          <Text style={[styles.changePercent, { color: isCritical ? theme.colors.statusCritical : (isWarning ? theme.colors.statusAlert : theme.colors.brandPrimary) }]}>
             {changePercent} {trend === 'up' ? '↑' : '↓'}
           </Text>
-          {fontsLoaded && isWarning && <Ionicons name="warning-outline" size={Theme.icons.sm} color={Theme.colors.statusAlert} />}
-          {fontsLoaded && isCritical && <Ionicons name="close-circle-outline" size={Theme.icons.sm} color={Theme.colors.statusCritical} />}
-          {fontsLoaded && (
-            <Ionicons 
-              name={expanded ? "chevron-up" : "chevron-down"} 
-              size={Theme.icons.sm} 
-              color={Theme.colors.textSubtle} 
-            />
-          )}
+          {fontsLoaded && isWarning && <Ionicons name="warning-outline" size={16} color={theme.colors.statusAlert} />}
+          {fontsLoaded && isCritical && <Ionicons name="close-circle-outline" size={16} color={theme.colors.statusCritical} />}
+          {fontsLoaded && <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={16} color={theme.colors.textSubtle} />}
         </View>
       </View>
 
       {expanded && (
-        <View style={styles.detailContainer}>
+        <View style={[styles.detailContainer, dynamicStyles.border]}>
           <View style={styles.detailGrid}>
             <View>
-              <Text style={styles.detailLabel}>Live Price</Text>
-              <Text style={styles.detailValue}>{price}</Text>
+              <Text style={dynamicStyles.label}>Live Price</Text>
+              <Text style={dynamicStyles.value}>{price}</Text>
             </View>
             <View>
-              <Text style={styles.detailLabel}>Avg. Purchase</Text>
+              <Text style={dynamicStyles.label}>Avg. Purchase</Text>
               {stats ? Object.keys(stats).map(curr => (
-                <Text key={curr} style={styles.detailValue}>
-                  {stats[curr].avgPrice.toFixed(2)} {curr === 'EUR' ? '€' : '$'}
-                </Text>
-              )) : <Text style={styles.detailValue}>---</Text>}
+                <Text key={curr} style={dynamicStyles.value}>{stats[curr].avgPrice.toFixed(2)} {curr === 'EUR' ? '€' : '$'}</Text>
+              )) : <Text style={dynamicStyles.value}>---</Text>}
             </View>
           </View>
-
-          <View style={styles.actionBar}>
+          <View style={[styles.actionBar, dynamicStyles.border]}>
             <TouchableOpacity style={styles.actionButton} onPress={() => onEdit && onEdit(ticker)}>
-              {fontsLoaded && <Ionicons name="pencil-outline" size={Theme.icons.md} color={Theme.colors.brandPrimary} />}
-              <Text style={[styles.actionText, { color: Theme.colors.brandPrimary }]}>Edit</Text>
+              <Ionicons name="pencil-outline" size={20} color={theme.colors.brandPrimary} />
+              <Text style={{ color: theme.colors.brandPrimary }}>Edit</Text>
             </TouchableOpacity>
-
             <TouchableOpacity style={styles.actionButton} onPress={() => onInvest && onInvest(ticker)}>
-              {fontsLoaded && <Ionicons name="swap-vertical-outline" size={Theme.icons.md} color={Theme.colors.textPrimary} />}
-              <Text style={styles.actionText}>
-                {status === ASSET_STATUS.WATCH ? 'Invest' : 'Trade'}
-              </Text>
+              <Ionicons name="swap-vertical-outline" size={20} color={theme.colors.textPrimary} />
+              <Text style={{ color: theme.colors.textPrimary }}>{status === ASSET_STATUS.WATCH ? 'Invest' : 'Trade'}</Text>
             </TouchableOpacity>
-
             <TouchableOpacity style={styles.actionButton} onPress={() => onDelete && onDelete(ticker)}>
-              {fontsLoaded && <Ionicons name="trash-outline" size={Theme.icons.md} color={Theme.colors.statusCritical} />}
-              <Text style={[styles.actionText, { color: Theme.colors.statusCritical }]}>Delete</Text>
+              <Ionicons name="trash-outline" size={20} color={theme.colors.statusCritical} />
+              <Text style={{ color: theme.colors.statusCritical }}>Delete</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -101,74 +77,15 @@ const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend,
 };
 
 const styles = StyleSheet.create({
-  stockItemCard: {
-    backgroundColor: Theme.colors.bgSurface, 
-    borderRadius: Theme.radii.standard,
-    padding: Theme.spacing.md,
-    borderWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle,
-  },
+  stockItemCard: { padding: 16, borderWidth: 1, marginBottom: 8 },
   stockRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  stockTicker: {
-    fontSize: Theme.typography.size.md,
-    fontWeight: Theme.typography.weight.semibold,
-    color: Theme.colors.textPrimary,
-    width: Theme.layout.tickerWidth, 
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Theme.spacing.sm,
-    justifyContent: 'flex-end',
-  },
-  stockPrice: { fontSize: Theme.typography.size.sm, color: Theme.colors.textPrimary },
-  changePercent: {
-    fontSize: Theme.typography.size.sm,
-    color: Theme.colors.brandPrimary, 
-    fontWeight: Theme.typography.weight.medium,
-    minWidth: Theme.layout.priceMinWidth,
-    textAlign: 'right',
-  },
-  detailContainer: {
-    marginTop: Theme.spacing.md,
-    paddingTop: Theme.spacing.md,
-    borderTopWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle,
-  },
-  detailGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Theme.spacing.md,
-  },
-  detailLabel: {
-    fontSize: Theme.typography.size.xs,
-    color: Theme.colors.textSubtle,
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: Theme.typography.size.sm,
-    color: Theme.colors.textPrimary,
-    fontWeight: Theme.typography.weight.medium,
-  },
-  actionBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderTopWidth: Theme.effects.borderWidthThin,
-    borderColor: Theme.colors.borderSubtle,
-    paddingTop: Theme.spacing.sm,
-    marginTop: Theme.spacing.sm,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Theme.spacing.xs,
-    paddingVertical: Theme.spacing.xs,
-  },
-  actionText: {
-    fontSize: Theme.typography.size.sm,
-    color: Theme.colors.textPrimary,
-    fontWeight: Theme.typography.weight.medium,
-  }
+  stockTicker: { fontWeight: '600', width: 80 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  changePercent: { fontWeight: '500', minWidth: 60, textAlign: 'right' },
+  detailContainer: { marginTop: 16, paddingTop: 16, borderTopWidth: 1 },
+  detailGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
+  actionBar: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, paddingTop: 8, marginTop: 8 },
+  actionButton: { flexDirection: 'row', alignItems: 'center', gap: 4 }
 });
 
 export default React.memo(StockItem);
