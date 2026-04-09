@@ -1,11 +1,11 @@
-// src/ui/components/HistoryDialog.js - Refactored Filter (Full-Body)
+// src/ui/components/HistoryDialog.js - Presenter Integration (Full-Body)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, View, Text, SectionList, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { AssetRepository } from '../../store/AssetRepository';
-import { ACTIONS } from '../../core/Constants';
-import { InputUtils } from '../../core/InputUtils'; // Utility Import
+import { InputUtils } from '../../core/InputUtils';
+import { AssetPresenter } from '../presenters/AssetPresenter';
 import ThemedInput from '../common/ThemedInput';
 
 const HistoryDialog = ({ visible, onClose }) => {
@@ -26,7 +26,6 @@ const HistoryDialog = ({ visible, onClose }) => {
         }
       });
 
-      // Nutzung der neuen Filter-Utility
       if (filter) {
         allTx = allTx.filter(tx => InputUtils.matchesSearchFilter(tx.ticker, filter));
       }
@@ -44,6 +43,24 @@ const HistoryDialog = ({ visible, onClose }) => {
   }, [filter]);
 
   useEffect(() => { if (visible) loadHistory(); }, [visible, loadHistory]);
+
+  const renderItem = ({ item }) => {
+    // Presenter für die Transaktions-Anzeige nutzen
+    const txVm = AssetPresenter.getTransactionViewModel(item.action, theme);
+
+    return (
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: theme.spacing.md, borderBottomWidth: theme.effects.border, borderColor: theme.colors.border }}>
+        <View>
+          <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body, fontWeight: theme.typography.weight.bold }}>{item.ticker}</Text>
+          <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption }}>{item.userTimestamp || '---'}</Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: theme.typography.size.caption, fontWeight: theme.typography.weight.bold, color: txVm.actionColor }}>{item.action}</Text>
+          <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body }}>{item.totalFiat.toFixed(2)} {item.currency}</Text>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
@@ -68,18 +85,7 @@ const HistoryDialog = ({ visible, onClose }) => {
               <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase' }}>{title}</Text>
             </View>
           )}
-          renderItem={({ item }) => (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: theme.spacing.md, borderBottomWidth: theme.effects.border, borderColor: theme.colors.border }}>
-              <View>
-                <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body, fontWeight: theme.typography.weight.bold }}>{item.ticker}</Text>
-                <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption }}>{item.userTimestamp || '---'}</Text>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: theme.typography.size.caption, fontWeight: theme.typography.weight.bold, color: item.action === ACTIONS.BUY ? theme.colors.primary : theme.colors.error }}>{item.action}</Text>
-                <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body }}>{item.totalFiat.toFixed(2)} {item.currency}</Text>
-              </View>
-            </View>
-          )}
+          renderItem={renderItem}
         />
       </SafeAreaView>
     </Modal>

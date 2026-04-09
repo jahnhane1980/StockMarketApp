@@ -1,4 +1,4 @@
-// src/ui/components/StockItem.js - Semantic Theme Update (Full-Body)
+// src/ui/components/StockItem.js - Presenter Integration (Full-Body)
 
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, LayoutAnimation } from 'react-native';
@@ -6,21 +6,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
 import { ASSET_STATUS } from '../../core/Constants';
 import { AssetRepository } from '../../store/AssetRepository';
+import { AssetPresenter } from '../presenters/AssetPresenter'; // Neu
 
-const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend, fontsLoaded, status, onDelete, onEdit, onInvest, transactions }) => {
+const StockItem = ({ asset, price, changePercent, trend, fontsLoaded, onDelete, onEdit, onInvest }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
+
+  // Presenter liefert das Visual Model
+  const vm = AssetPresenter.getAssetViewModel(asset, theme);
+  const stats = AssetRepository.getPositionStats(asset);
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
   };
 
-  const stats = AssetRepository.getPositionStats({ transactions });
-
   const dynamicStyles = {
     card: { backgroundColor: theme.colors.surface, borderRadius: theme.radii.md, borderColor: theme.colors.border, borderWidth: theme.effects.border },
-    ticker: { color: theme.colors.text, fontSize: theme.typography.size.subheading, fontWeight: theme.typography.weight.bold },
+    ticker: { color: vm.tickerColor, fontSize: theme.typography.size.subheading, fontWeight: theme.typography.weight.bold },
     price: { color: theme.colors.text, fontSize: theme.typography.size.body },
     label: { color: theme.colors.textSubtle, fontSize: theme.typography.size.caption },
     value: { color: theme.colors.text, fontWeight: theme.typography.weight.medium },
@@ -30,14 +33,15 @@ const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend,
   return (
     <TouchableOpacity style={[styles.stockItemCard, dynamicStyles.card]} onPress={toggleExpand} activeOpacity={0.7}>
       <View style={styles.stockRow}>
-        <Text style={[dynamicStyles.ticker, isCritical && { color: theme.colors.error }, isWarning && { color: theme.colors.warning }]}>{ticker}</Text>
+        <Text style={dynamicStyles.ticker}>{vm.ticker}</Text>
         <View style={styles.statusRow}>
           <Text style={dynamicStyles.price}>{price}</Text>
-          <Text style={[styles.changePercent, { color: isCritical ? theme.colors.error : (isWarning ? theme.colors.warning : theme.colors.primary) }]}>
+          <Text style={[styles.changePercent, { color: vm.statusColor }]}>
             {changePercent} {trend === 'up' ? '↑' : '↓'}
           </Text>
-          {fontsLoaded && isWarning && <Ionicons name="warning-outline" size={theme.layout.icon.sm} color={theme.colors.warning} />}
-          {fontsLoaded && isCritical && <Ionicons name="close-circle-outline" size={theme.layout.icon.sm} color={theme.colors.error} />}
+          {fontsLoaded && vm.showStatusIcon && (
+            <Ionicons name={vm.statusIcon} size={theme.layout.icon.sm} color={vm.statusColor} />
+          )}
           {fontsLoaded && <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={theme.layout.icon.sm} color={theme.colors.textSubtle} />}
         </View>
       </View>
@@ -57,15 +61,15 @@ const StockItem = ({ ticker, price, changePercent, isWarning, isCritical, trend,
             </View>
           </View>
           <View style={[styles.actionBar, dynamicStyles.actionBar]}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => onEdit && onEdit(ticker)}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => onEdit && onEdit(asset.ticker)}>
               <Ionicons name="pencil-outline" size={theme.layout.icon.sm} color={theme.colors.primary} />
               <Text style={{ color: theme.colors.primary, fontWeight: theme.typography.weight.medium }}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => onInvest && onInvest(ticker)}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => onInvest && onInvest(asset.ticker)}>
               <Ionicons name="swap-vertical-outline" size={theme.layout.icon.sm} color={theme.colors.text} />
-              <Text style={{ color: theme.colors.text, fontWeight: theme.typography.weight.medium }}>{status === ASSET_STATUS.WATCH ? 'Invest' : 'Trade'}</Text>
+              <Text style={{ color: theme.colors.text, fontWeight: theme.typography.weight.medium }}>{asset.status === ASSET_STATUS.WATCH ? 'Invest' : 'Trade'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => onDelete && onDelete(ticker)}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => onDelete && onDelete(asset.ticker)}>
               <Ionicons name="trash-outline" size={theme.layout.icon.sm} color={theme.colors.error} />
               <Text style={{ color: theme.colors.error, fontWeight: theme.typography.weight.medium }}>Delete</Text>
             </TouchableOpacity>
