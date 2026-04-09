@@ -6,7 +6,7 @@ import { SYSTEM_PROMPT as MACRO_PROMPT } from '../assets/prompt_stock_analyser';
 export class GoogleApiService {
   /**
    * Zentraler Kern für alle Gemini-Anfragen.
-   * Behandelt Header, 90s Timeout und 503 Retries.
+   * Behandelt Header, 90s Timeout, 503 Überlastung und 429 Rate Limits.
    */
   async _callAi(prompt, inputData, retryCount = 0) {
     if (!Config.GOOGLE_API.KEY) {
@@ -36,8 +36,11 @@ export class GoogleApiService {
 
       clearTimeout(timeoutId);
 
-      if (response.status === 503 && retryCount < 1) {
-        await new Promise(res => setTimeout(res, 3000));
+      // FIX: Behandelt jetzt 503 (Server überlastet) UND 429 (Rate Limit / Too Many Requests)
+      if ((response.status === 503 || response.status === 429) && retryCount < 2) {
+        const delay = response.status === 429 ? 5000 : 3000; // Bei Rate Limit länger warten
+        if (global.log) global.log.warn(`API Status ${response.status}: Retry ${retryCount + 1} nach ${delay}ms`);
+        await new Promise(res => setTimeout(res, delay));
         return this._callAi(prompt, inputData, retryCount + 1);
       }
 

@@ -30,11 +30,14 @@ export default function MainView() {
   const currentTheme = settings.theme === 'light' ? LightTheme : DarkTheme;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  const marketVm = AssetPresenter.getMarketViewModel(macroData?.action_summary?.global_ui_score, currentTheme);
+  // Wenn ein Fehler vorliegt, Fallback auf UNKNOWN für den Market-Indicator
+  const marketScore = macroData?.error ? null : macroData?.action_summary?.global_ui_score;
+  const marketVm = AssetPresenter.getMarketViewModel(marketScore, currentTheme);
+  
   const recommendations = radarData?.watchlist_results?.filter(r => r.score >= 8) || [];
 
   useEffect(() => {
-    if (macroData) {
+    if (macroData && !macroData.error) {
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 1.15, duration: 1200, useNativeDriver: true }),
@@ -57,6 +60,17 @@ export default function MainView() {
     recommendationCard: {
       backgroundColor: currentTheme.colors.surface, padding: currentTheme.spacing.md, borderRadius: currentTheme.radii.md,
       marginBottom: currentTheme.spacing.md, borderLeftWidth: 4, borderLeftColor: currentTheme.colors.success
+    },
+    errorBox: {
+      backgroundColor: currentTheme.colors.surface,
+      borderColor: currentTheme.colors.error,
+      borderWidth: 1,
+      padding: currentTheme.spacing.md,
+      borderRadius: currentTheme.radii.md,
+      marginBottom: currentTheme.spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12
     },
     fab: { 
       position: 'absolute', bottom: currentTheme.spacing.xl, right: currentTheme.spacing.lg, width: 56, height: 56, 
@@ -94,6 +108,18 @@ export default function MainView() {
           </View>
 
           <ScrollView contentContainerStyle={{ padding: currentTheme.spacing.md }}>
+            
+            {/* KI Fehler Feedback Box */}
+            {macroData?.error && (
+              <View style={styles.errorBox}>
+                {fontsLoaded && <Ionicons name="warning" size={24} color={currentTheme.colors.error} />}
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: currentTheme.colors.error, fontWeight: 'bold', marginBottom: 4 }}>System-Hinweis</Text>
+                  <Text style={{ color: currentTheme.colors.text, fontSize: currentTheme.typography.size.body }}>{macroData.error}</Text>
+                </View>
+              </View>
+            )}
+
             {recommendations.length > 0 && (
               <View style={{ marginBottom: currentTheme.spacing.sm }}>
                 <Text style={styles.sectionLabel}>Top Radar Picks</Text>
@@ -129,7 +155,8 @@ export default function MainView() {
           <AddAssetDialog visible={dialogs.addAsset} initialAsset={state.editingAsset} onClose={() => actions.toggleDialog('addAsset', false)} onSave={actions.handleSaveAsset} />
           <TransactionDialog visible={dialogs.transaction} ticker={state.activeTicker} onClose={() => actions.toggleDialog('transaction', false)} onSave={actions.handleSaveTransaction} />
           <HistoryDialog visible={dialogs.history} onClose={() => actions.toggleDialog('history', false)} />
-          <MacroDetailsDialog visible={dialogs.macro} data={macroData} onClose={() => actions.toggleDialog('macro', false)} />
+          {/* Macro Dialog nur öffnen, wenn kein Error vorliegt, sonst crasht der Parser dort eventuell */}
+          {!macroData?.error && <MacroDetailsDialog visible={dialogs.macro} data={macroData} onClose={() => actions.toggleDialog('macro', false)} />}
           <FinancialDialog visible={dialogs.finance} initialData={finData} onClose={() => actions.toggleDialog('finance', false)} onSave={actions.handleUpdateFinance} />
           <StockRadarDialog visible={dialogs.radar} radarData={radarData} initialTicker={activeTicker} onClose={() => actions.toggleDialog('radar', false)} onAddAsset={(data) => actions.toggleDialog('addAsset', true, data)} />
         </SafeAreaView>

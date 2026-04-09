@@ -2,7 +2,8 @@
 
 import { PRODUCTION_WORKER_CONFIG, TEST_WORKER_CONFIG } from './Constants';
 
-const IS_TEST_MODE = false; 
+// FIX: Auf true gesetzt, um den MockDataService zu nutzen und API-Limits während der Entwicklung zu schonen
+const IS_TEST_MODE = true; 
 
 export const Config = {
   GOOGLE_API: {

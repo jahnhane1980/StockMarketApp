@@ -10,6 +10,7 @@ import { MacroRepository } from '../../store/MacroRepository';
 import { FinancialRepository } from '../../store/FinancialRepository';
 import { RadarRepository } from '../../store/RadarRepository'; 
 import { StorageServiceFactory } from '../../store/StorageService';
+import { Config } from '../../core/Config';
 
 export const usePortfolioManager = () => {
   const [dialogs, setDialogs] = useState({
@@ -40,15 +41,23 @@ export const usePortfolioManager = () => {
   const loadInitialData = async (forceRefresh = false) => {
     try {
       setIsLoading(true);
+      
       if (forceRefresh) {
+        // FIX: Sauberes Löschen des Caches über die eigene Methode des Repositories
+        await MacroRepository.clearCache();
         const storage = StorageServiceFactory.getService();
-        await storage.removeItem('@macro_status_cache_v1');
         await storage.removeItem('@radar_cache_v1');
       }
 
-      const [loadedAssets, loadedSettings, status, finance, radar] = await Promise.all([
+      // FIX: 1. Settings zwingend zuerst laden
+      const loadedSettings = await SettingsRepository.getSettings();
+      
+      // FIX: 2. API-Key in der Config synchronisieren BEVOR Repositories feuern
+      Config.GOOGLE_API.KEY = loadedSettings.apiKey;
+
+      // 3. Erst jetzt die abhängigen Daten (inklusive KI-API Requests) parallel laden
+      const [loadedAssets, status, finance, radar] = await Promise.all([
         AssetRepository.getAll(),
-        SettingsRepository.getSettings(),
         MacroRepository.getStatus(),
         FinancialRepository.getData(),
         RadarRepository.getData()
@@ -78,7 +87,7 @@ export const usePortfolioManager = () => {
   const handleForceRefresh = () => {
     Alert.alert(
       "KI-Analyse erzwingen",
-      "Möchtest du die Marktdaten live neu abfragen?",
+      "Möchtest du die Marktdaten live neu abfragen? Dies dauert einige Sekunden.",
       [
         { text: "Abbrechen", style: "cancel" },
         { text: "Analysieren", onPress: () => loadInitialData(true) }
@@ -111,6 +120,10 @@ export const usePortfolioManager = () => {
 
   const handleUpdateSettings = async (newSet) => {
     await SettingsRepository.saveSettings(newSet);
+    
+    // FIX: API-Key sofort aktualisieren, wenn er in den Settings geändert wird
+    Config.GOOGLE_API.KEY = newSet.apiKey;
+    
     setSettings(newSet);
     toggleDialog('settings', false);
   };

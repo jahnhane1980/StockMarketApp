@@ -36,6 +36,19 @@ const MacroDetailsDialog = ({ visible, data, onClose }) => {
           <Row label="Urgency" value={data.action_summary?.urgency} color={vm.urgencyColor} />
         </View>
 
+        {/* NEU: Die fehlende Liquidity & Debt Sektion aus der V34 JSON */}
+        <View style={{ marginBottom: theme.spacing.lg, paddingBottom: theme.spacing.sm, borderBottomWidth: theme.effects.border, borderColor: theme.colors.border }}>
+          <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase', marginBottom: theme.spacing.sm }}>Liquidity & Debt</Text>
+          <Row label="Cash to Deploy" value={data.action_summary?.total_cash_to_deploy ? `${data.action_summary.total_cash_to_deploy} $` : undefined} />
+          <Row label="Net Liquidity Change" value={data.action_summary?.net_liquidity_change ? `${data.action_summary.net_liquidity_change} $` : undefined} />
+          <Row label="Accrued Interest" value={data.debt_metrics?.accrued_interest ? `${data.debt_metrics.accrued_interest} $` : undefined} />
+          <Row 
+            label="Principal Safety" 
+            value={data.debt_metrics?.principal_safety_status} 
+            color={data.debt_metrics?.principal_safety_status === 'SECURE' ? theme.colors.success : theme.colors.error} 
+          />
+        </View>
+
         <View style={{ marginBottom: theme.spacing.lg }}>
           <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase', marginBottom: theme.spacing.sm }}>Macro Metrics</Text>
           <Row label="VIX State" value={data.metrics_validation?.macro?.vix_state} />
