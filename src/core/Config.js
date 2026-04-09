@@ -1,15 +1,15 @@
-// src/core/Config.js - Production Sync (Full-Body)
+// src/core/Config.js - Update: Gemini 2.5 Flash Sync (Full-Body)
 
 import { PRODUCTION_WORKER_CONFIG, TEST_WORKER_CONFIG } from './Constants';
 
-// Auf FALSE setzen, damit GoogleApiService aktiv wird
 const IS_TEST_MODE = false; 
 
 export const Config = {
   GOOGLE_API: {
-    URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
-    KEY: "", // Über das Settings-Menü in der App eintragen
-    PROMPT_PATH: 'assets/prompt_stock_analyser.md'
+    // v1beta ist notwendig für die neuesten Flash-Modelle und JSON-Features
+    URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    KEY: "", // Bleibt leer für GitHub, Eintragung nur via App-Settings
+    PROMPT_PATH: 'assets/prompt_stock_analyser.js'
   },
   TEST: IS_TEST_MODE,
   ADMIN_EMAIL: "jahnhane@gmail.com",

@@ -1,4 +1,4 @@
-// src/core/Constants.js - Strukturierte Konfiguration (Full-Body)
+// src/core/Constants.js - Vollständige System-Konfiguration (Full-Body)
 
 export const ASSET_STATUS = {
   WATCH: 'WATCH',
@@ -40,25 +40,22 @@ export const MARKET_STATUS = {
   UNKNOWN: 'UNKNOWN'
 };
 
-export const METRIC_STATES = {
-  INACTIVE: 'INACTIVE',
-  ACTIVE: 'ACTIVE'
-};
+// NEU: Cache-Dauer für die KI-Analyse (4 Stunden)
+export const MACRO_CACHE_DURATION = 4 * 60 * 60 * 1000;
 
-// Hintergrund-Worker Konfigurationen (Ähnlich wie Theme-Ansatz)
+// Hintergrund-Worker Konfigurationen
 const SHARED_WORKER_CONFIG = {
   TASK_NAME: 'MARKET_SCAN_TASK',
 };
 
 export const PRODUCTION_WORKER_CONFIG = {
   ...SHARED_WORKER_CONFIG,
-  SCAN_TIMES: ['15:35', '20:15', '21:45'], // MEZ (CET)
+  SCAN_TIMES: ['15:35', '20:15', '21:45'], 
   FETCH_INTERVAL: 60 * 15 // 15 Minuten
 };
 
 export const TEST_WORKER_CONFIG = {
   ...SHARED_WORKER_CONFIG,
-  // Im Testmodus: Scannt zu jeder vollen Minute (Simuliert durch leere Liste oder speziellen Trigger)
   SCAN_TIMES: [], 
-  FETCH_INTERVAL: 60 // 1 Minute für schnelles Feedback
+  FETCH_INTERVAL: 60 // 1 Minute
 };

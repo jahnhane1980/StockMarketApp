@@ -1,11 +1,12 @@
-// src/store/MacroRepository.js - INPUT_DATA Aggregation (Full-Body)
+// src/store/MacroRepository.js - V34 TTL Caching (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 import { DataServiceFactory } from '../api/DataService';
 import { AssetRepository } from './AssetRepository';
 import { FinancialRepository } from './FinancialRepository';
+import { MACRO_CACHE_DURATION } from '../core/Constants';
 
-const CACHE_KEY = '@macro_status_cache_v1';
+const CACHE_KEY = '@macro_status_cache_v2';
 
 export class MacroRepository {
   static async getStatus() {
@@ -13,13 +14,24 @@ export class MacroRepository {
     const dataService = DataServiceFactory.getService();
 
     try {
-      // 1. App-Daten für die KI sammeln
+      // 1. Lokalen Cache prüfen
+      const cachedData = await storage.getItem(CACHE_KEY);
+      if (cachedData) {
+        const { timestamp, data } = JSON.parse(cachedData);
+        const age = Date.now() - timestamp;
+
+        if (age < MACRO_CACHE_DURATION) {
+          if (global.log) global.log.info(`MacroRepository: Nutze Cache (Alter: ${Math.round(age/60000)} Min)`);
+          return data;
+        }
+      }
+
+      // 2. Daten für den V34 Request sammeln
       const [assets, fin] = await Promise.all([
         AssetRepository.getAll(),
         FinancialRepository.getData()
       ]);
 
-      // 2. INPUT_DATA gemäß deines Interface-Vorgaben erstellen
       const inputData = {
         portfolio: {
           total_val: assets.reduce((sum, a) => sum + (AssetRepository.getPositionStats(a)?.EUR?.totalFiat || 0), 0) + fin.currentCash,
@@ -28,30 +40,42 @@ export class MacroRepository {
         debt: {
           principal: fin.debtAmount,
           interest_rate_pa: fin.debtInterest,
-          start_date: new Date().toISOString().split('T')[0]
+          start_date: fin.debtStartDate || new Date().toISOString().split('T')[0]
         },
         tickers: assets.map(a => ({
           id: a.ticker,
           type: a.type || 'A',
           current_pos: AssetRepository.getPositionStats(a)?.EUR?.totalFiat || 0,
-          funding_source: 'EQUITY' // Standard, kann später verfeinert werden
+          funding_source: a.fundingSource || 'EQUITY',
+          override_dark_pool_delta: a.override_dark_pool_delta || null
         }))
       };
 
-      // 3. API Call mit echten Daten
+      // 3. API Request
       const remoteData = await dataService.getMacroScore(inputData);
       
       if (remoteData && !remoteData.error) {
-        await storage.setItem(CACHE_KEY, JSON.stringify(remoteData));
-        if (global.log) global.log.info("MacroRepository: Analyse erfolgreich empfangen.");
+        await storage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          data: remoteData
+        }));
         return remoteData;
       }
-
-      const cached = await storage.getItem(CACHE_KEY);
-      return cached ? JSON.parse(cached) : null;
+      throw new Error("KI lieferte keine validen Daten.");
     } catch (error) {
-      if (global.log) global.log.error("MacroRepository: Analyse fehlgeschlagen", error.message);
-      return { error: error.message }; 
+      if (global.log) global.log.error("MacroRepository Error:", error.message);
+      const lastResort = await storage.getItem(CACHE_KEY);
+      if (lastResort) {
+        const { data } = JSON.parse(lastResort);
+        return { ...data, error: `Netzwerkfehler: ${error.message}` };
+      }
+      return { error: error.message };
     }
+  }
+
+  static async clearCache() {
+    const storage = StorageServiceFactory.getService();
+    await storage.removeItem(CACHE_KEY);
+    if (global.log) global.log.info("MacroRepository: Cache manuell gelöscht.");
   }
 }
