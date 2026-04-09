@@ -1,4 +1,4 @@
-// components/HistoryDialog.js - 100% Theme-basiert (Full-Body)
+// components/HistoryDialog.js - 100% Theme-basiert (Full-Body Sync)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -66,9 +66,18 @@ const HistoryDialog = ({ visible, onClose }) => {
   }, [visible, loadHistory]);
 
   const dynamicStyles = {
+    overlay: { backgroundColor: theme.colors.bgOverlay },
     container: { backgroundColor: theme.colors.bgMain },
-    header: { borderColor: theme.colors.borderSubtle, padding: theme.spacing.md, borderBottomWidth: theme.effects.borderWidthThin },
+    header: { 
+      borderColor: theme.colors.borderSubtle, 
+      padding: theme.spacing.md, 
+      borderBottomWidth: theme.effects.borderWidthThin,
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      alignItems: 'center'
+    },
     title: { color: theme.colors.textPrimary, fontSize: theme.typography.size.lg, fontWeight: theme.typography.weight.bold },
+    closeBtn: { color: theme.colors.brandPrimary, fontWeight: theme.typography.weight.medium },
     search: { 
       backgroundColor: theme.colors.bgSurface, 
       color: theme.colors.textPrimary, 
@@ -83,80 +92,79 @@ const HistoryDialog = ({ visible, onClose }) => {
       padding: theme.spacing.xs, 
       paddingHorizontal: theme.spacing.md,
       fontSize: theme.typography.size.xxs,
-      fontWeight: theme.typography.weight.bold
+      fontWeight: theme.typography.weight.bold,
+      textTransform: 'uppercase'
     },
     row: { 
       borderColor: theme.colors.borderSubtle, 
       padding: theme.spacing.md, 
-      borderBottomWidth: theme.effects.borderWidthThin 
+      borderBottomWidth: theme.effects.borderWidthThin,
+      flexDirection: 'row', 
+      justifyContent: 'space-between'
     },
     tickerText: { color: theme.colors.textPrimary, fontSize: theme.typography.size.md, fontWeight: theme.typography.weight.bold },
-    subText: { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs }
+    subText: { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs },
+    actionText: { fontSize: theme.typography.size.xs, fontWeight: theme.typography.weight.bold, marginBottom: 2 }
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={[styles.container, dynamicStyles.container]}>
-        <View style={[styles.header, dynamicStyles.header]}>
-          <Text style={dynamicStyles.title}>Transaktions-Historie</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={{ color: theme.colors.brandPrimary, fontWeight: theme.typography.weight.medium }}>Schließen</Text>
-          </TouchableOpacity>
-        </View>
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
+      <View style={[{ flex: 1 }, dynamicStyles.overlay]}>
+        <SafeAreaView style={[{ flex: 1 }, dynamicStyles.container]}>
+          <View style={dynamicStyles.header}>
+            <Text style={dynamicStyles.title}>Transaktions-Historie</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={dynamicStyles.closeBtn}>Schließen</Text>
+            </TouchableOpacity>
+          </View>
 
-        <TextInput 
-          style={dynamicStyles.search} 
-          placeholder="Ticker filtern..." 
-          placeholderTextColor={theme.colors.textSubtle}
-          value={filter}
-          onChangeText={setFilter}
-          autoCapitalize="characters"
-        />
+          <TextInput 
+            style={dynamicStyles.search} 
+            placeholder="Ticker filtern..." 
+            placeholderTextColor={theme.colors.textSubtle}
+            value={filter}
+            onChangeText={setFilter}
+            autoCapitalize="characters"
+          />
 
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => item.id}
-          stickySectionHeadersEnabled={true}
-          renderSectionHeader={({ section: { title } }) => (
-            <View style={{ backgroundColor: dynamicStyles.sectionHeader.backgroundColor, padding: dynamicStyles.sectionHeader.padding, paddingHorizontal: dynamicStyles.sectionHeader.paddingHorizontal }}>
-              <Text style={{ color: dynamicStyles.sectionHeader.color, fontSize: dynamicStyles.sectionHeader.fontSize, fontWeight: dynamicStyles.sectionHeader.fontWeight, textTransform: 'uppercase' }}>{title}</Text>
-            </View>
-          )}
-          renderItem={({ item }) => (
-            <View style={dynamicStyles.row}>
-              <View>
-                <Text style={dynamicStyles.tickerText}>{item.ticker}</Text>
-                <Text style={dynamicStyles.subText}>{item.userTimestamp || '---'}</Text>
+          <SectionList
+            sections={sections}
+            keyExtractor={(item) => item.id}
+            stickySectionHeadersEnabled={true}
+            renderSectionHeader={({ section: { title } }) => (
+              <View style={{ backgroundColor: dynamicStyles.sectionHeader.backgroundColor }}>
+                <Text style={dynamicStyles.sectionHeader}>{title}</Text>
               </View>
-              <View style={styles.txValues}>
-                <Text style={{ 
-                  fontSize: theme.typography.size.xs, 
-                  fontWeight: theme.typography.weight.bold, 
-                  marginBottom: 2,
-                  color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical 
-                }}>
-                  {item.action}
-                </Text>
-                <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }}>
-                  {item.totalFiat.toFixed(2)} {item.currency}
-                </Text>
+            )}
+            renderItem={({ item }) => (
+              <View style={dynamicStyles.row}>
+                <View>
+                  <Text style={dynamicStyles.tickerText}>{item.ticker}</Text>
+                  <Text style={dynamicStyles.subText}>{item.userTimestamp || '---'}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={[
+                    dynamicStyles.actionText, 
+                    { color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical }
+                  ]}>
+                    {item.action}
+                  </Text>
+                  <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }}>
+                    {item.totalFiat.toFixed(2)} {item.currency}
+                  </Text>
+                </View>
               </View>
-            </View>
-          )}
-          ListEmptyComponent={
-            <Text style={[styles.emptyText, dynamicStyles.subText, { marginTop: theme.spacing.xl }]}>Keine Transaktionen gefunden.</Text>
-          }
-        />
-      </SafeAreaView>
+            )}
+            ListEmptyComponent={
+              <Text style={[{ textAlign: 'center' }, dynamicStyles.subText, { marginTop: theme.spacing.xl }]}>Keine Transaktionen gefunden.</Text>
+            }
+          />
+        </SafeAreaView>
+      </View>
     </Modal>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  txValues: { alignItems: 'flex-end' },
-  emptyText: { textAlign: 'center' }
-});
+const styles = StyleSheet.create({});
 
 export default HistoryDialog;

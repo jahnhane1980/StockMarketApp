@@ -1,4 +1,4 @@
-// App.js - Hauptbildschirm mit 100% Theme-Token Integration (Full-Body)
+// App.js - 100% Theme-Token Integration (Full-Body)
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -108,7 +108,11 @@ export default function App() {
       borderBottomWidth: currentTheme.effects.borderWidthThin, 
       borderColor: currentTheme.colors.borderSubtle 
     },
-    toolbarText: { color: currentTheme.colors.textPrimary, fontSize: currentTheme.typography.size.lg, fontWeight: currentTheme.typography.weight.medium },
+    toolbarText: { 
+      color: currentTheme.colors.textPrimary, 
+      fontSize: currentTheme.typography.size.lg, 
+      fontWeight: currentTheme.typography.weight.medium 
+    },
     finSummaryRow: { 
       flexDirection: 'row', 
       backgroundColor: currentTheme.colors.bgSurface, 
@@ -125,10 +129,18 @@ export default function App() {
       fontSize: currentTheme.typography.size.xxs, 
       textTransform: 'uppercase', 
       fontWeight: currentTheme.typography.weight.bold, 
-      marginBottom: 2 
+      marginBottom: currentTheme.spacing.xs 
     },
-    finValue: { color: currentTheme.colors.textPrimary, fontSize: currentTheme.typography.size.sm, fontWeight: currentTheme.typography.weight.semibold },
-    macroIndicator: { width: 12, height: 12, borderRadius: 6 },
+    finValue: { 
+      color: currentTheme.colors.textPrimary, 
+      fontSize: currentTheme.typography.size.sm, 
+      fontWeight: currentTheme.typography.weight.semibold 
+    },
+    macroIndicator: { 
+      width: currentTheme.layout.macroIndicatorSize, 
+      height: currentTheme.layout.macroIndicatorSize, 
+      borderRadius: currentTheme.radii.indicator 
+    },
     fab: { 
       position: 'absolute', 
       bottom: currentTheme.layout.fabBottom, 
@@ -140,6 +152,12 @@ export default function App() {
       justifyContent: 'center', 
       alignItems: 'center', 
       elevation: 5 
+    },
+    iconButton: { 
+      width: currentTheme.layout.iconButtonSize, 
+      height: currentTheme.layout.iconButtonSize, 
+      justifyContent: 'center', 
+      alignItems: 'center' 
     }
   });
 
@@ -150,26 +168,26 @@ export default function App() {
           <StatusBar barStyle={currentTheme.dark ? "light-content" : "dark-content"} backgroundColor={currentTheme.colors.bgMain} />
 
           <View style={dynamicStyles.toolbar}>
-            <View style={[styles.toolbarLeft, { gap: currentTheme.spacing.sm }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: currentTheme.layout.standardGap }}>
               <TouchableOpacity 
-                style={[styles.macroTrigger, { gap: currentTheme.spacing.sm }]} 
+                style={{ flexDirection: 'row', alignItems: 'center', gap: currentTheme.layout.standardGap }} 
                 onPress={() => setMacroVisible(true)}
               >
                 <Animated.View style={[dynamicStyles.macroIndicator, { backgroundColor: getIndicatorColor(), transform: [{ scale: pulseAnim }] }]} />
                 <Text style={dynamicStyles.toolbarText}>Macro</Text>
               </TouchableOpacity>
             </View>
-            <View style={[styles.toolbarRight, { gap: currentTheme.spacing.sm }]}>
-              <TouchableOpacity style={styles.iconButton} onPress={() => setHistoryVisible(true)}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: currentTheme.layout.standardGap }}>
+              <TouchableOpacity style={dynamicStyles.iconButton} onPress={() => setHistoryVisible(true)}>
                 {fontsLoaded && <Ionicons name="receipt-outline" size={currentTheme.icons.md} color={currentTheme.colors.textPrimary} />}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={() => setSettingsVisible(true)}>
+              <TouchableOpacity style={dynamicStyles.iconButton} onPress={() => setSettingsVisible(true)}>
                 {fontsLoaded && <Ionicons name="settings-outline" size={currentTheme.icons.md} color={currentTheme.colors.textPrimary} />}
               </TouchableOpacity>
             </View>
           </View>
 
-          <ScrollView style={styles.listContainer} contentContainerStyle={{ padding: currentTheme.spacing.md, gap: currentTheme.spacing.md }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: currentTheme.spacing.md, gap: currentTheme.spacing.md }}>
             <View style={dynamicStyles.finSummaryRow}>
               <View style={{ flex: 1 }}>
                 <Text style={dynamicStyles.finLabel}>Verfügbares Cash</Text>
@@ -220,11 +238,3 @@ export default function App() {
     </ThemeContext.Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  toolbarLeft: { flexDirection: 'row', alignItems: 'center' },
-  macroTrigger: { flexDirection: 'row', alignItems: 'center' },
-  toolbarRight: { flexDirection: 'row', alignItems: 'center' },
-  iconButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  listContainer: { flex: 1 }
-});

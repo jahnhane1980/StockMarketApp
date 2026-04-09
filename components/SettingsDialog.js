@@ -29,12 +29,13 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
   const ThemeChip = ({ label, value }) => (
     <TouchableOpacity 
       style={[
-        styles.chip, 
         { 
           borderColor: theme.colors.borderSubtle,
           borderWidth: theme.effects.borderWidthThin,
           borderRadius: theme.radii.standard,
-          padding: theme.spacing.sm
+          padding: theme.spacing.sm,
+          flex: 1,
+          alignItems: 'center'
         },
         selectedTheme === value && { backgroundColor: theme.colors.brandPrimary, borderColor: theme.colors.brandPrimary }
       ]} 
@@ -78,8 +79,8 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
       padding: theme.spacing.sm
     },
     inputFocused: { borderColor: theme.colors.brandPrimary },
-    btnPrimary: { backgroundColor: theme.colors.brandPrimary, paddingVertical: theme.spacing.sm },
-    btnSecondary: { backgroundColor: theme.colors.bgSurface, paddingVertical: theme.spacing.sm }
+    btnPrimary: { backgroundColor: theme.colors.brandPrimary, paddingVertical: theme.spacing.sm, borderRadius: theme.radii.standard, alignItems: 'center' },
+    btnSecondary: { backgroundColor: theme.colors.bgSurface, paddingVertical: theme.spacing.sm, borderRadius: theme.radii.standard, alignItems: 'center' }
   };
 
   return (
@@ -87,7 +88,7 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
       <TouchableOpacity style={[styles.modalOverlay, dynamicStyles.overlay]} activeOpacity={1} onPress={onClose}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={[styles.dialogContainer, dynamicStyles.container]}>
-            <Text style={[styles.dialogTitle, dynamicStyles.title]}>Settings</Text>
+            <Text style={[{ textAlign: 'center' }, dynamicStyles.title]}>Settings</Text>
             
             <View style={{ marginBottom: theme.spacing.md }}>
               <Text style={dynamicStyles.label}>Google API Key</Text>
@@ -107,7 +108,7 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
 
             <View style={{ marginBottom: theme.spacing.md }}>
               <Text style={dynamicStyles.label}>App Theme</Text>
-              <View style={styles.chipRow}>
+              <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
                 <ThemeChip label="Dark Mode" value="dark" />
                 <ThemeChip label="Light Mode" value="light" />
               </View>
@@ -115,13 +116,13 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
             
             <View style={{ marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
               <TouchableOpacity 
-                style={[styles.btn, dynamicStyles.btnPrimary]} 
+                style={dynamicStyles.btnPrimary} 
                 onPress={() => onSave({ apiKey, theme: selectedTheme })}
               >
                 <Text style={{ color: theme.colors.textOnPrimary, fontWeight: theme.typography.weight.bold }}>Save</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.btn, dynamicStyles.btnSecondary]} 
+                style={dynamicStyles.btnSecondary} 
                 onPress={onClose}
               >
                 <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }}>Cancel</Text>
@@ -136,11 +137,7 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
 
 const styles = StyleSheet.create({
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  dialogContainer: { maxWidth: 400 },
-  dialogTitle: { textAlign: 'center' },
-  chipRow: { flexDirection: 'row', gap: 8 },
-  chip: { flex: 1, alignItems: 'center' },
-  btn: { borderRadius: 6, alignItems: 'center' }
+  dialogContainer: { maxWidth: 400 }
 });
 
 export default SettingsDialog;

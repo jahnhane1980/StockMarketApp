@@ -1,7 +1,7 @@
-// Theme.js - Vollständige Design Tokens für Dark und Light Mode (Full-Body)
+// Theme.js - 100% Abstraktion aller visuellen Parameter (Full-Body)
 
 const sharedTokens = {
-  radii: { standard: 6, input: 4, dialog: 8, full: 99 },
+  radii: { standard: 6, input: 4, dialog: 8, indicator: 6, full: 99 },
   spacing: { 
     xs: 4, 
     sm: 8, 
@@ -18,27 +18,14 @@ const sharedTokens = {
     priceMinWidth: 60, 
     dialogMaxHeight: '85%', 
     modalWidth: '90%', 
-    iconButtonSize: 40 
+    iconButtonSize: 40,
+    macroIndicatorSize: 12, // Neu
+    standardGap: 8 // Neu
   },
   typography: {
-    size: { 
-      xxs: 10, 
-      xs: 12, 
-      sm: 14, 
-      md: 16, 
-      lg: 18, 
-      xl: 22 
-    },
-    weight: { 
-      normal: '400', 
-      medium: '500', 
-      semibold: '600', 
-      bold: 'bold' 
-    },
-    style: {
-      italic: 'italic',
-      normal: 'normal'
-    }
+    size: { xxs: 10, xs: 12, sm: 14, md: 16, lg: 18, xl: 22 },
+    weight: { normal: '400', medium: '500', semibold: '600', bold: 'bold' },
+    style: { italic: 'italic', normal: 'normal' }
   },
   effects: { 
     shadowOpacityFull: 1, 
@@ -49,12 +36,7 @@ const sharedTokens = {
     borderWidthThin: 1,
     opacityDisabled: 0.5 
   },
-  icons: { 
-    xs: 16, 
-    sm: 18, 
-    md: 24, 
-    lg: 30 
-  }
+  icons: { xs: 16, sm: 18, md: 24, lg: 30 }
 };
 
 export const DarkTheme = {
