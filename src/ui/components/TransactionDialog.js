@@ -1,4 +1,4 @@
-// src/ui/components/TransactionDialog.js - Mit Validierung (Full-Body)
+// src/ui/components/TransactionDialog.js - Refactored (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
@@ -7,6 +7,7 @@ import { ACTIONS, CURRENCIES, FUNDING_SOURCES } from '../../core/Constants';
 import ThemedDialog from '../common/ThemedDialog';
 import ThemedButton from '../common/ThemedButton';
 import ThemedInput from '../common/ThemedInput';
+import { InputUtils } from '../../core/InputUtils';
 
 const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
   const theme = useTheme();
@@ -17,7 +18,6 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
   const [funding, setFunding] = useState(FUNDING_SOURCES.EQUITY);
   const [timestamp, setTimestamp] = useState('');
   
-  // Validierungs-States
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -29,24 +29,26 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
     }
   }, [visible, ticker]);
 
-  const validate = () => {
-    let newErrors = {};
-    const fiat = parseFloat(totalFiat.replace(',', '.'));
-    const price = parseFloat(pricePerUnit.replace(',', '.'));
-
-    if (isNaN(fiat) || fiat <= 0) newErrors.totalFiat = "Betrag muss größer als 0 sein";
-    if (isNaN(price) || price <= 0) newErrors.pricePerUnit = "Kurs muss größer als 0 sein";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const validateForm = () => {
+    const newErrors = {
+      totalFiat: InputUtils.validateIsPositiveAmount(totalFiat, "Betrag"),
+      pricePerUnit: InputUtils.validateIsPositiveAmount(pricePerUnit, "Kurs")
+    };
+    
+    const activeErrors = Object.fromEntries(
+      Object.entries(newErrors).filter(([_, message]) => message !== null)
+    );
+    
+    setErrors(activeErrors);
+    return Object.keys(activeErrors).length === 0;
   };
 
   const handleSave = () => {
-    if (validate()) {
+    if (validateForm()) {
       onSave(ticker, { 
         action, 
-        totalFiat: parseFloat(totalFiat.replace(',', '.')), 
-        pricePerUnit: parseFloat(pricePerUnit.replace(',', '.')), 
+        totalFiat: InputUtils.localizeStringToFloat(totalFiat), 
+        pricePerUnit: InputUtils.localizeStringToFloat(pricePerUnit), 
         currency, 
         funding: action === ACTIONS.BUY ? funding : null, 
         userTimestamp: timestamp 
@@ -63,10 +65,17 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
 
   const Chip = ({ label, value, current, onChange, activeColor }) => (
     <TouchableOpacity 
-      style={[{ flex: 1, padding: theme.spacing.sm, borderRadius: theme.radii.md, borderWidth: theme.effects.border, borderColor: theme.colors.border, alignItems: 'center' }, current === value && { backgroundColor: activeColor || theme.colors.primary, borderColor: activeColor || theme.colors.primary }]}
+      style={[
+        { flex: 1, padding: theme.spacing.sm, borderRadius: theme.radii.md, borderWidth: theme.effects.border, borderColor: theme.colors.border, alignItems: 'center' }, 
+        current === value && { backgroundColor: activeColor || theme.colors.primary, borderColor: activeColor || theme.colors.primary }
+      ]}
       onPress={() => onChange(value)}
     >
-      <Text style={{ color: current === value ? theme.colors.onPrimary : theme.colors.textSubtle, fontSize: theme.typography.size.body, fontWeight: current === value ? theme.typography.weight.bold : theme.typography.weight.regular }}>{label}</Text>
+      <Text style={{ 
+        color: current === value ? theme.colors.onPrimary : theme.colors.textSubtle, 
+        fontSize: theme.typography.size.body, 
+        fontWeight: current === value ? theme.typography.weight.bold : theme.typography.weight.regular 
+      }}>{label}</Text>
     </TouchableOpacity>
   );
 
@@ -84,14 +93,14 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
         <ThemedInput 
           label="Betrag" 
           value={totalFiat} 
-          onChangeText={(val) => { setTotalFiat(val); if(errors.totalFiat) validate(); }} 
+          onChangeText={(v) => { setTotalFiat(v); setErrors({}); }} 
           keyboardType="decimal-pad"
           errorMessage={errors.totalFiat}
         />
         <ThemedInput 
           label="Kurs" 
           value={pricePerUnit} 
-          onChangeText={(val) => { setPricePerUnit(val); if(errors.pricePerUnit) validate(); }} 
+          onChangeText={(v) => { setPricePerUnit(v); setErrors({}); }} 
           keyboardType="decimal-pad"
           errorMessage={errors.pricePerUnit}
         />

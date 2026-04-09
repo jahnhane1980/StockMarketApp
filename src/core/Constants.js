@@ -1,4 +1,4 @@
-// src/core/Constants.js - Domänenübergreifende Konstanten
+// src/core/Constants.js - Erweiterte Konstanten (Full-Body)
 
 export const ASSET_STATUS = {
   WATCH: 'WATCH',
@@ -7,10 +7,10 @@ export const ASSET_STATUS = {
 };
 
 export const ASSET_TYPES = {
-  A: 'A',
-  B: 'B',
-  C: 'C',
-  D: 'D'
+  A: { id: 'A', label: 'A: Quality / Growth' },
+  B: { id: 'B', label: 'B: Tactical / RSI' },
+  C: { id: 'C', label: 'C: Macro / Crypto' },
+  D: { id: 'D', label: 'D: High Risk' }
 };
 
 export const ACTIONS = {

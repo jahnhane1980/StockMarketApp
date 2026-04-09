@@ -1,10 +1,11 @@
-// src/ui/components/HistoryDialog.js - Semantisches Refactoring (Full-Body)
+// src/ui/components/HistoryDialog.js - Refactored Filter (Full-Body)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, View, Text, SectionList, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { AssetRepository } from '../../store/AssetRepository';
 import { ACTIONS } from '../../core/Constants';
+import { InputUtils } from '../../core/InputUtils'; // Utility Import
 import ThemedInput from '../common/ThemedInput';
 
 const HistoryDialog = ({ visible, onClose }) => {
@@ -24,9 +25,12 @@ const HistoryDialog = ({ visible, onClose }) => {
           });
         }
       });
+
+      // Nutzung der neuen Filter-Utility
       if (filter) {
-        allTx = allTx.filter(tx => tx.ticker.toLowerCase().includes(filter.toLowerCase()));
+        allTx = allTx.filter(tx => InputUtils.matchesSearchFilter(tx.ticker, filter));
       }
+
       allTx.sort((a, b) => new Date(b.recordedAt) - new Date(a.recordedAt));
       const groups = {};
       allTx.forEach(tx => {
@@ -41,29 +45,10 @@ const HistoryDialog = ({ visible, onClose }) => {
 
   useEffect(() => { if (visible) loadHistory(); }, [visible, loadHistory]);
 
-  const dynamicStyles = {
-    header: { 
-      padding: theme.spacing.md, 
-      borderBottomWidth: theme.effects.border, 
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.background 
-    },
-    sectionHeader: { 
-      backgroundColor: theme.colors.surface, 
-      paddingVertical: theme.spacing.xs, 
-      paddingHorizontal: theme.spacing.md 
-    },
-    row: { 
-      padding: theme.spacing.md, 
-      borderBottomWidth: theme.effects.border, 
-      borderColor: theme.colors.border 
-    }
-  };
-
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <View style={[styles.header, dynamicStyles.header]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: theme.spacing.md, borderBottomWidth: theme.effects.border, borderColor: theme.colors.border }}>
           <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.subheading, fontWeight: theme.typography.weight.bold }}>Historie</Text>
           <TouchableOpacity onPress={onClose}>
             <Text style={{ color: theme.colors.primary, fontWeight: theme.typography.weight.medium }}>Schließen</Text>
@@ -79,22 +64,18 @@ const HistoryDialog = ({ visible, onClose }) => {
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={({ section: { title } }) => (
-            <View style={dynamicStyles.sectionHeader}>
+            <View style={{ backgroundColor: theme.colors.surface, paddingVertical: theme.spacing.xs, paddingHorizontal: theme.spacing.md }}>
               <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase' }}>{title}</Text>
             </View>
           )}
           renderItem={({ item }) => (
-            <View style={[styles.row, dynamicStyles.row]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: theme.spacing.md, borderBottomWidth: theme.effects.border, borderColor: theme.colors.border }}>
               <View>
                 <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body, fontWeight: theme.typography.weight.bold }}>{item.ticker}</Text>
                 <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption }}>{item.userTimestamp || '---'}</Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ 
-                  fontSize: theme.typography.size.caption, 
-                  fontWeight: theme.typography.weight.bold, 
-                  color: item.action === ACTIONS.BUY ? theme.colors.primary : theme.colors.error 
-                }}>{item.action}</Text>
+                <Text style={{ fontSize: theme.typography.size.caption, fontWeight: theme.typography.weight.bold, color: item.action === ACTIONS.BUY ? theme.colors.primary : theme.colors.error }}>{item.action}</Text>
                 <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body }}>{item.totalFiat.toFixed(2)} {item.currency}</Text>
               </View>
             </View>
@@ -104,10 +85,5 @@ const HistoryDialog = ({ visible, onClose }) => {
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  row: { flexDirection: 'row', justifyContent: 'space-between' }
-});
 
 export default HistoryDialog;

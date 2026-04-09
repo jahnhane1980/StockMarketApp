@@ -1,8 +1,9 @@
-// src/ui/components/SettingsDialog.js - Semantic Refactor (Full-Body)
+// src/ui/components/SettingsDialog.js - Refactored (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
+import { InputUtils } from '../../core/InputUtils'; // Utility Import
 import ThemedDialog from '../common/ThemedDialog';
 import ThemedButton from '../common/ThemedButton';
 import ThemedInput from '../common/ThemedInput';
@@ -19,34 +20,38 @@ const SettingsDialog = ({ visible, onClose, onSave, currentSettings }) => {
     }
   }, [visible, currentSettings]);
 
+  const handleSave = () => {
+    // Sanitize Key vor dem Speichern
+    onSave({ 
+      apiKey: InputUtils.sanitizeKey(apiKey), 
+      theme: selectedTheme 
+    });
+  };
+
   const footer = (
     <View style={{ gap: theme.layout.standardGap }}>
-      <ThemedButton title="Einstellungen sichern" onPress={() => onSave({ apiKey, theme: selectedTheme })} />
+      <ThemedButton title="Einstellungen sichern" onPress={handleSave} />
       <ThemedButton title="Abbrechen" onPress={onClose} type="secondary" />
     </View>
   );
 
   const ThemeChip = ({ label, value }) => (
     <TouchableOpacity 
-      style={[
-        { flex: 1, padding: theme.spacing.sm, borderRadius: theme.radii.md, borderWidth: theme.effects.border, borderColor: theme.colors.border, alignItems: 'center' },
-        selectedTheme === value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
-      ]} 
+      style={[{ flex: 1, padding: theme.spacing.sm, borderRadius: theme.radii.md, borderWidth: theme.effects.border, borderColor: theme.colors.border, alignItems: 'center' }, selectedTheme === value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }]} 
       onPress={() => setSelectedTheme(value)}
     >
-      <Text style={{ 
-        color: selectedTheme === value ? theme.colors.onPrimary : theme.colors.textSubtle, 
-        fontSize: theme.typography.size.body, 
-        fontWeight: selectedTheme === value ? theme.typography.weight.bold : theme.typography.weight.regular 
-      }}>
-        {label}
-      </Text>
+      <Text style={{ color: selectedTheme === value ? theme.colors.onPrimary : theme.colors.textSubtle, fontSize: theme.typography.size.body, fontWeight: selectedTheme === value ? theme.typography.weight.bold : theme.typography.weight.regular }}>{label}</Text>
     </TouchableOpacity>
   );
 
   return (
     <ThemedDialog visible={visible} onClose={onClose} title="Konfiguration" footer={footer}>
-      <ThemedInput label="Google API Key" value={apiKey} onChangeText={setApiKey} placeholder="AIzaSy..." />
+      <ThemedInput 
+        label="Google API Key" 
+        value={apiKey} 
+        onChangeText={setApiKey} 
+        placeholder="AIzaSy..." 
+      />
       
       <View style={{ marginBottom: theme.spacing.md }}>
         <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.caption, marginBottom: theme.spacing.xs, fontWeight: theme.typography.weight.medium }}>Erscheinungsbild</Text>
