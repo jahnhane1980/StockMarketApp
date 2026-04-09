@@ -47,25 +47,26 @@ export const AssetPresenter = {
   },
 
   /**
-   * NEU: Visuelle Logik für die detaillierte Makro-Ansicht
+   * Visuelle Logik für die detaillierte Makro-Ansicht
    */
   getMacroDetailsViewModel: (data, theme) => {
     if (!data) return null;
 
     return {
       scoreColor: data.action_summary?.global_ui_score >= 7.1 ? theme.colors.success : theme.colors.warning,
-      urgencyColor: theme.colors.warning, // Standardmäßig Orange für Dringlichkeit
+      urgencyColor: theme.colors.warning, 
       goldStressColor: data.metrics_validation?.macro?.gold_stress === 'INACTIVE' ? theme.colors.success : theme.colors.error,
       phaseLabel: `${data.cycling_navigator?.current_phase || '---'} ➔ ${data.cycling_navigator?.recommendation || '---'}`
     };
   },
 
   /**
-   * NEU: Visuelle Logik für Transaktionen in der Historie
+   * Visuelle Logik für Finanz-Daten (Cash/Debt)
    */
-  getTransactionViewModel: (action, theme) => {
+  getFinancialViewModel: (finData, theme) => {
     return {
-      actionColor: action === ACTIONS.BUY ? theme.colors.primary : theme.colors.error
+      debtColor: finData.debtAmount > 0 ? theme.colors.error : theme.colors.text,
+      cashColor: theme.colors.text
     };
   }
 };
