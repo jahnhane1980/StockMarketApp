@@ -1,11 +1,11 @@
-// components/FinancialDialog.js - Refactored with Shared Components
+// src/ui/components/FinancialDialog.js - Semantic Refactor (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import ThemedDialog from './common/ThemedDialog';
-import ThemedButton from './common/ThemedButton';
-import ThemedInput from './common/ThemedInput';
+import { useTheme } from '../../theme/ThemeContext';
+import ThemedDialog from '../common/ThemedDialog';
+import ThemedButton from '../common/ThemedButton';
+import ThemedInput from '../common/ThemedInput';
 
 const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
   const theme = useTheme();
@@ -34,16 +34,16 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
 
   const footer = (
     <View style={{ gap: theme.layout.standardGap }}>
-      <ThemedButton title="Speichern" onPress={handleSave} type="primary" />
+      <ThemedButton title="Speichern" onPress={handleSave} />
       <ThemedButton title="Abbrechen" onPress={onClose} type="secondary" />
     </View>
   );
 
   return (
-    <ThemedDialog visible={visible} onClose={onClose} title="Finanz-Status" footer={footer}>
+    <ThemedDialog visible={visible} onClose={onClose} title="Liquidiät & Zinsen" footer={footer}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <ThemedInput label="Verfügbares Cash (€)" value={cash} onChangeText={setCash} keyboardType="decimal-pad" />
-        <ThemedInput label="Habenzinsen p.a. (%)" value={cInt} onChangeText={setCInt} keyboardType="decimal-pad" />
+        <ThemedInput label="Cash-Bestand (€)" value={cash} onChangeText={setCash} keyboardType="decimal-pad" />
+        <ThemedInput label="Habenzins p.a. (%)" value={cInt} onChangeText={setCInt} keyboardType="decimal-pad" />
         <ThemedInput label="Fremdkapital (€)" value={debt} onChangeText={setDebt} keyboardType="decimal-pad" />
         <ThemedInput label="Kreditzins p.a. (%)" value={dInt} onChangeText={setDInt} keyboardType="decimal-pad" />
       </ScrollView>

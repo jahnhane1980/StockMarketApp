@@ -1,32 +1,33 @@
-// components/common/ThemedInput.js - Standardisiertes Eingabefeld
+// src/ui/common/ThemedInput.js - 100% Semantisches Theme (Full-Body)
 
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { useTheme } from '../../ThemeContext';
+import { useTheme } from '../../theme/ThemeContext';
 
 const ThemedInput = ({ label, value, onChangeText, placeholder, keyboardType = 'default', editable = true, style }) => {
   const theme = useTheme();
 
   return (
-    <View style={[styles.container, { marginBottom: theme.spacing.md }, style]}>
+    <View style={[{ marginBottom: theme.spacing.md }, style]}>
       {label && (
         <Text style={{ 
           color: theme.colors.textSubtle, 
-          fontSize: theme.typography.size.xs, 
-          marginBottom: theme.spacing.xs 
+          fontSize: theme.typography.size.caption, 
+          marginBottom: theme.spacing.xs,
+          fontWeight: theme.typography.weight.medium
         }}>
           {label}
         </Text>
       )}
       <TextInput
         style={{
-          color: theme.colors.textPrimary,
-          borderColor: theme.colors.borderSubtle,
-          borderWidth: theme.effects.borderWidthThin,
-          borderRadius: theme.radii.input,
+          color: theme.colors.text,
+          borderColor: theme.colors.border,
+          borderWidth: theme.effects.border,
+          borderRadius: theme.radii.sm,
           padding: theme.spacing.sm,
-          fontSize: theme.typography.size.md,
-          backgroundColor: theme.dark ? 'transparent' : theme.colors.bgSurface,
+          fontSize: theme.typography.size.body,
+          backgroundColor: theme.dark ? 'transparent' : theme.colors.surface,
           opacity: editable ? 1 : theme.effects.opacityDisabled
         }}
         value={value}
@@ -39,9 +40,5 @@ const ThemedInput = ({ label, value, onChangeText, placeholder, keyboardType = '
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { width: '100%' }
-});
 
 export default ThemedInput;

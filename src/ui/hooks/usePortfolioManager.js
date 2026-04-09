@@ -1,15 +1,14 @@
-// hooks/usePortfolioManager.js - Zentrales Management der Portfolio-Logik
+// src/ui/hooks/usePortfolioManager.js - Zentrales Management (Full-Body Sync)
 
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import { AssetRepository } from '../services/AssetRepository';
-import { SettingsRepository } from '../services/SettingsRepository';
-import { MacroRepository } from '../services/MacroRepository';
-import { FinancialRepository } from '../services/FinancialRepository';
+import { AssetRepository } from '../../store/AssetRepository';
+import { SettingsRepository } from '../../store/SettingsRepository';
+import { MacroRepository } from '../../store/MacroRepository';
+import { FinancialRepository } from '../../store/FinancialRepository';
 
 export const usePortfolioManager = () => {
-  // --- UI-States (Dialoge) ---
   const [dialogs, setDialogs] = useState({
     settings: false,
     addAsset: false,
@@ -19,7 +18,6 @@ export const usePortfolioManager = () => {
     finance: false,
   });
 
-  // --- Daten-States ---
   const [activeTicker, setActiveTicker] = useState(null);
   const [editingAsset, setEditingAsset] = useState(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -28,14 +26,12 @@ export const usePortfolioManager = () => {
   const [macroData, setMacroData] = useState(null);
   const [finData, setFinData] = useState({ currentCash: 0, debtAmount: 0 });
 
-  // Hilfsfunktion zum Umschalten der Dialoge
   const toggleDialog = (key, visible, data = null) => {
     setDialogs(prev => ({ ...prev, [key]: visible }));
     if (key === 'addAsset' && !visible) setEditingAsset(null);
     if (key === 'transaction' && visible) setActiveTicker(data);
   };
 
-  // --- Initiales Laden ---
   useEffect(() => {
     async function loadInitialData() {
       try {
@@ -65,7 +61,6 @@ export const usePortfolioManager = () => {
     setAssets([...data]);
   };
 
-  // --- Business Logic Handler ---
   const handleSaveAsset = async (asset) => {
     await AssetRepository.save(asset);
     await refreshAssets();

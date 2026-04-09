@@ -1,4 +1,4 @@
-// services/FinancialRepository.js - Verwaltung von Cash und Zinsen
+// src/store/FinancialRepository.js - Refactored Structure (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 
@@ -17,20 +17,13 @@ export class FinancialRepository {
     try {
       const data = await storage.getItem(STORAGE_KEY);
       return data ? { ...DEFAULT_DATA, ...JSON.parse(data) } : DEFAULT_DATA;
-    } catch (error) {
-      if (global.log) log.error("FinancialRepository: Fehler beim Laden", error);
-      return DEFAULT_DATA;
-    }
+    } catch (error) { return DEFAULT_DATA; }
   }
 
   static async saveData(newData) {
     try {
       await storage.setItem(STORAGE_KEY, JSON.stringify(newData));
-      if (global.log) log.info("FinancialRepository: Daten erfolgreich gespeichert.");
       return newData;
-    } catch (error) {
-      if (global.log) log.error("FinancialRepository: Fehler beim Speichern", error);
-      throw error;
-    }
+    } catch (error) { throw error; }
   }
 }
