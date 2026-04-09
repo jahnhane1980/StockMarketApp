@@ -1,19 +1,11 @@
-// components/HistoryDialog.js - 100% Theme-basiert (Full-Body Sync)
+// components/HistoryDialog.js - UI Atom Refactor
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  SectionList,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-} from 'react-native';
+import { Modal, View, Text, SectionList, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useTheme } from '../ThemeContext';
 import { AssetRepository } from '../services/AssetRepository';
 import { ACTIONS } from '../Constants';
+import ThemedInput from './common/ThemedInput'; // Shared Input
 
 const HistoryDialog = ({ visible, onClose }) => {
   const theme = useTheme();
@@ -25,7 +17,6 @@ const HistoryDialog = ({ visible, onClose }) => {
       const active = await AssetRepository.getAll();
       const archived = await AssetRepository.getArchived();
       let allTx = [];
-
       [...active, ...archived].forEach(asset => {
         if (asset.transactions) {
           asset.transactions.forEach(tx => {
@@ -33,15 +24,10 @@ const HistoryDialog = ({ visible, onClose }) => {
           });
         }
       });
-
       if (filter) {
-        allTx = allTx.filter(tx => 
-          tx.ticker.toLowerCase().includes(filter.toLowerCase())
-        );
+        allTx = allTx.filter(tx => tx.ticker.toLowerCase().includes(filter.toLowerCase()));
       }
-
       allTx.sort((a, b) => new Date(b.recordedAt) - new Date(a.recordedAt));
-
       const groups = {};
       allTx.forEach(tx => {
         const date = new Date(tx.recordedAt);
@@ -49,122 +35,55 @@ const HistoryDialog = ({ visible, onClose }) => {
         if (!groups[key]) groups[key] = [];
         groups[key].push(tx);
       });
-
-      const sectionData = Object.keys(groups).map(key => ({
-        title: key,
-        data: groups[key]
-      }));
-
-      setSections(sectionData);
-    } catch (e) {
-      if (global.log) log.error("HistoryDialog: Fehler beim Laden", e);
-    }
+      setSections(Object.keys(groups).map(key => ({ title: key, data: groups[key] })));
+    } catch (e) { if (global.log) log.error("History: Load error", e); }
   }, [filter]);
 
-  useEffect(() => {
-    if (visible) loadHistory();
-  }, [visible, loadHistory]);
-
-  const dynamicStyles = {
-    overlay: { backgroundColor: theme.colors.bgOverlay },
-    container: { backgroundColor: theme.colors.bgMain },
-    header: { 
-      borderColor: theme.colors.borderSubtle, 
-      padding: theme.spacing.md, 
-      borderBottomWidth: theme.effects.borderWidthThin,
-      flexDirection: 'row', 
-      justifyContent: 'space-between', 
-      alignItems: 'center'
-    },
-    title: { color: theme.colors.textPrimary, fontSize: theme.typography.size.lg, fontWeight: theme.typography.weight.bold },
-    closeBtn: { color: theme.colors.brandPrimary, fontWeight: theme.typography.weight.medium },
-    search: { 
-      backgroundColor: theme.colors.bgSurface, 
-      color: theme.colors.textPrimary, 
-      padding: theme.spacing.md,
-      margin: theme.spacing.md,
-      fontSize: theme.typography.size.md,
-      borderRadius: theme.radii.standard
-    },
-    sectionHeader: { 
-      backgroundColor: theme.colors.bgSurface, 
-      color: theme.colors.textSubtle, 
-      padding: theme.spacing.xs, 
-      paddingHorizontal: theme.spacing.md,
-      fontSize: theme.typography.size.xxs,
-      fontWeight: theme.typography.weight.bold,
-      textTransform: 'uppercase'
-    },
-    row: { 
-      borderColor: theme.colors.borderSubtle, 
-      padding: theme.spacing.md, 
-      borderBottomWidth: theme.effects.borderWidthThin,
-      flexDirection: 'row', 
-      justifyContent: 'space-between'
-    },
-    tickerText: { color: theme.colors.textPrimary, fontSize: theme.typography.size.md, fontWeight: theme.typography.weight.bold },
-    subText: { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs },
-    actionText: { fontSize: theme.typography.size.xs, fontWeight: theme.typography.weight.bold, marginBottom: 2 }
-  };
+  useEffect(() => { if (visible) loadHistory(); }, [visible, loadHistory]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={[{ flex: 1 }, dynamicStyles.overlay]}>
-        <SafeAreaView style={[{ flex: 1 }, dynamicStyles.container]}>
-          <View style={dynamicStyles.header}>
-            <Text style={dynamicStyles.title}>Transaktions-Historie</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={dynamicStyles.closeBtn}>Schließen</Text>
-            </TouchableOpacity>
-          </View>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bgMain }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: theme.spacing.md, borderBottomWidth: theme.effects.borderWidthThin, borderColor: theme.colors.borderSubtle }}>
+          <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.lg, fontWeight: theme.typography.weight.bold }}>Transaktions-Historie</Text>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={{ color: theme.colors.brandPrimary, fontWeight: theme.typography.weight.medium }}>Schließen</Text>
+          </TouchableOpacity>
+        </View>
 
-          <TextInput 
-            style={dynamicStyles.search} 
+        <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md }}>
+          <ThemedInput 
             placeholder="Ticker filtern..." 
-            placeholderTextColor={theme.colors.textSubtle}
-            value={filter}
-            onChangeText={setFilter}
-            autoCapitalize="characters"
+            value={filter} 
+            onChangeText={setFilter} 
           />
+        </View>
 
-          <SectionList
-            sections={sections}
-            keyExtractor={(item) => item.id}
-            stickySectionHeadersEnabled={true}
-            renderSectionHeader={({ section: { title } }) => (
-              <View style={{ backgroundColor: dynamicStyles.sectionHeader.backgroundColor }}>
-                <Text style={dynamicStyles.sectionHeader}>{title}</Text>
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
+          stickySectionHeadersEnabled={true}
+          renderSectionHeader={({ section: { title } }) => (
+            <View style={{ backgroundColor: theme.colors.bgSurface, padding: theme.spacing.xs, paddingHorizontal: theme.spacing.md }}>
+              <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.xxs, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase' }}>{title}</Text>
+            </View>
+          )}
+          renderItem={({ item }) => (
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: theme.spacing.md, borderBottomWidth: theme.effects.borderWidthThin, borderColor: theme.colors.borderSubtle }}>
+              <View>
+                <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.md, fontWeight: theme.typography.weight.bold }}>{item.ticker}</Text>
+                <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.xs }}>{item.userTimestamp || '---'}</Text>
               </View>
-            )}
-            renderItem={({ item }) => (
-              <View style={dynamicStyles.row}>
-                <View>
-                  <Text style={dynamicStyles.tickerText}>{item.ticker}</Text>
-                  <Text style={dynamicStyles.subText}>{item.userTimestamp || '---'}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[
-                    dynamicStyles.actionText, 
-                    { color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical }
-                  ]}>
-                    {item.action}
-                  </Text>
-                  <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }}>
-                    {item.totalFiat.toFixed(2)} {item.currency}
-                  </Text>
-                </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={{ fontSize: theme.typography.size.xs, fontWeight: theme.typography.weight.bold, marginBottom: 2, color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical }}>{item.action}</Text>
+                <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }}>{item.totalFiat.toFixed(2)} {item.currency}</Text>
               </View>
-            )}
-            ListEmptyComponent={
-              <Text style={[{ textAlign: 'center' }, dynamicStyles.subText, { marginTop: theme.spacing.xl }]}>Keine Transaktionen gefunden.</Text>
-            }
-          />
-        </SafeAreaView>
-      </View>
+            </View>
+          )}
+        />
+      </SafeAreaView>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({});
 
 export default HistoryDialog;

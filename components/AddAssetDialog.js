@@ -1,9 +1,12 @@
-// components/AddAssetDialog.js - 100% Theme-basiert (Full-Body Sync)
+// components/AddAssetDialog.js - Refactored with Shared Components
 
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '../ThemeContext';
 import { ASSET_STATUS, ASSET_TYPES } from '../Constants';
+import ThemedDialog from './common/ThemedDialog';
+import ThemedButton from './common/ThemedButton';
+import ThemedInput from './common/ThemedInput';
 
 const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
   const theme = useTheme();
@@ -52,78 +55,42 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
     onSave({ ticker: ticker.toUpperCase(), status, type });
   };
 
-  const dynamicStyles = {
-    overlay: { backgroundColor: theme.colors.bgOverlay },
-    container: { 
-      backgroundColor: theme.colors.bgMain, 
-      borderColor: theme.colors.borderSubtle,
-      borderTopLeftRadius: theme.radii.dialog, 
-      borderTopRightRadius: theme.radii.dialog, 
-      padding: theme.spacing.lg, 
-      borderTopWidth: theme.effects.borderWidthThin 
-    },
-    title: { 
-      color: theme.colors.textPrimary, 
-      fontSize: theme.typography.size.xl, 
-      fontWeight: theme.typography.weight.bold, 
-      marginBottom: theme.spacing.lg,
-      textAlign: 'center'
-    },
-    label: { color: theme.colors.textSubtle, fontSize: theme.typography.size.sm, marginBottom: theme.spacing.xs },
-    input: { 
-      color: theme.colors.textPrimary, 
-      borderColor: theme.colors.borderSubtle,
-      borderWidth: theme.effects.borderWidthThin, 
-      borderRadius: theme.radii.input, 
-      padding: theme.spacing.sm, 
-      fontSize: theme.typography.size.md,
-      backgroundColor: theme.dark ? theme.colors.bgMain : theme.colors.bgSurface 
-    },
-    buttonPrimary: { paddingVertical: theme.spacing.md, borderRadius: theme.radii.standard, alignItems: 'center' },
-    buttonSecondary: { paddingVertical: theme.spacing.md, borderRadius: theme.radii.standard, alignItems: 'center' }
-  };
+  const footer = (
+    <View style={{ gap: theme.layout.standardGap }}>
+      <ThemedButton title="Asset speichern" onPress={handleSave} type="primary" />
+      <ThemedButton title="Abbrechen" onPress={onClose} type="secondary" />
+    </View>
+  );
 
   return (
-    <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={[{ flex: 1, justifyContent: 'flex-end' }, dynamicStyles.overlay]} activeOpacity={1} onPress={onClose}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={dynamicStyles.container}>
-            <Text style={dynamicStyles.title}>{initialAsset ? 'Basisdaten bearbeiten' : 'Neues Asset hinzufügen'}</Text>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={{ marginBottom: theme.spacing.md }}>
-                <Text style={dynamicStyles.label}>Ticker / Symbol</Text>
-                <TextInput style={[dynamicStyles.input, !!initialAsset && { opacity: theme.effects.opacityDisabled }]} value={ticker} onChangeText={setTicker} autoCapitalize="characters" editable={!initialAsset} placeholderTextColor={theme.colors.textSubtle} />
-              </View>
-              <View style={{ marginBottom: theme.spacing.md }}>
-                <Text style={dynamicStyles.label}>Status</Text>
-                <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
-                  <SelectionChip label="Beobachten" value={ASSET_STATUS.WATCH} current={status} onChange={setStatus} />
-                  <SelectionChip label="Portfolio" value={ASSET_STATUS.OWNED} current={status} onChange={setStatus} />
-                </View>
-              </View>
-              <View style={{ marginBottom: theme.spacing.md }}>
-                <Text style={dynamicStyles.label}>Asset Typ</Text>
-                <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
-                  <SelectionChip label="A (Growth)" value={ASSET_TYPES.A} current={type} onChange={setType} />
-                  <SelectionChip label="B (Mega)" value={ASSET_TYPES.B} current={type} onChange={setType} />
-                </View>
-              </View>
-            </ScrollView>
-            <View style={{ marginTop: theme.spacing.md, gap: theme.spacing.md }}>
-              <TouchableOpacity style={[dynamicStyles.buttonPrimary, { backgroundColor: theme.colors.brandPrimary }]} onPress={handleSave}>
-                <Text style={{ color: theme.colors.textOnPrimary, fontWeight: theme.typography.weight.bold }}>Asset speichern</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[dynamicStyles.buttonSecondary, { backgroundColor: theme.colors.bgSurface }]} onPress={onClose}>
-                <Text style={{ color: theme.colors.textPrimary }}>Abbrechen</Text>
-              </TouchableOpacity>
-            </View>
+    <ThemedDialog visible={visible} onClose={onClose} title={initialAsset ? 'Basisdaten bearbeiten' : 'Neues Asset hinzufügen'} footer={footer}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <ThemedInput 
+          label="Ticker / Symbol" 
+          value={ticker} 
+          onChangeText={setTicker} 
+          editable={!initialAsset} 
+          style={!!initialAsset && { opacity: theme.effects.opacityDisabled }}
+        />
+        
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.sm, marginBottom: theme.spacing.xs }}>Status</Text>
+          <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
+            <SelectionChip label="Beobachten" value={ASSET_STATUS.WATCH} current={status} onChange={setStatus} />
+            <SelectionChip label="Portfolio" value={ASSET_STATUS.OWNED} current={status} onChange={setStatus} />
           </View>
-        </TouchableWithoutFeedback>
-      </TouchableOpacity>
-    </Modal>
+        </View>
+
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.sm, marginBottom: theme.spacing.xs }}>Asset Typ</Text>
+          <View style={{ flexDirection: 'row', gap: theme.layout.standardGap }}>
+            <SelectionChip label="A (Growth)" value={ASSET_TYPES.A} current={type} onChange={setType} />
+            <SelectionChip label="B (Mega)" value={ASSET_TYPES.B} current={type} onChange={setType} />
+          </View>
+        </View>
+      </ScrollView>
+    </ThemedDialog>
   );
 };
-
-const styles = StyleSheet.create({});
 
 export default AddAssetDialog;
