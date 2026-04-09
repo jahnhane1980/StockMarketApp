@@ -1,13 +1,10 @@
-// src/api/GoogleApiService.js - Refactored AI Core (Full-Body)
+// src/api/GoogleApiService.js - Refactored AI Core & Radar Prompt (Full-Body)
 
 import { Config } from '../core/Config';
 import { SYSTEM_PROMPT as MACRO_PROMPT } from '../assets/prompt_stock_analyser';
+import { RADAR_SYSTEM_PROMPT } from '../assets/prompt_stock_radar'; // NEU IMPORTIERT
 
 export class GoogleApiService {
-  /**
-   * Zentraler Kern für alle Gemini-Anfragen.
-   * Behandelt Header, 90s Timeout, 503 Überlastung und 429 Rate Limits.
-   */
   async _callAi(prompt, inputData, retryCount = 0) {
     if (!Config.GOOGLE_API.KEY) {
       throw new Error("API_KEY_MISSING");
@@ -49,7 +46,6 @@ export class GoogleApiService {
       const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!rawText) throw new Error("INVALID_AI_RESPONSE");
 
-      // NEU: Robuste JSON Extraktion (ignoriert Markdown oder Text vor/nach dem JSON)
       const firstBrace = rawText.indexOf('{');
       const lastBrace = rawText.lastIndexOf('}');
       
@@ -73,9 +69,27 @@ export class GoogleApiService {
     return this._callAi(MACRO_PROMPT, inputData);
   }
 
+  // NEU: Dynamische Prompt-Injektion für den Radar
   async getRadarData() {
-    const RADAR_PROMPT = "MISSION: Autonomer Markt-Scan. Identifiziere 5 Ticker (A-E) mit Score 0-10. Return JSON: watchlist_results [ticker, score, core_reason_short, core_reason_long, zones].";
-    return this._callAi(RADAR_PROMPT, { mode: 'autonomous_scan' });
+    const now = new Date();
+    const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+    
+    // Daten vorbereiten
+    const currentMonthYear = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+    const currentDate = now.toISOString().split('T')[0];
+    const lastAndCurrentYear = `${now.getFullYear() - 1}/${now.getFullYear()}`;
+    const currentIsoTimestamp = now.toISOString();
+
+    // Platzhalter im Prompt ersetzen
+    const dynamicPrompt = RADAR_SYSTEM_PROMPT
+      .replace(/\{\{CURRENT_MONTH_YEAR\}\}/g, currentMonthYear)
+      .replace(/\{\{CURRENT_DATE\}\}/g, currentDate)
+      .replace(/\{\{LAST_AND_CURRENT_YEAR\}\}/g, lastAndCurrentYear)
+      .replace(/\{\{CURRENT_ISO_TIMESTAMP\}\}/g, currentIsoTimestamp);
+
+    if (global.log) global.log.info(`Radar Engine gestartet. Zeitstempel: ${currentDate}`);
+
+    return this._callAi(dynamicPrompt, { mode: 'autonomous_scan' });
   }
 
   async getStockDetails(ticker) {
