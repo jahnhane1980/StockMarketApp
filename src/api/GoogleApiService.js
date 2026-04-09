@@ -92,6 +92,10 @@ export class GoogleApiService {
     return this._callAi(dynamicPrompt, { mode: 'autonomous_scan' });
   }
 
+/**
+ * Das ist aktuell ein reiner Platzhalter (Stub). Wir haben sie beim initialen API-Design mit angelegt für den *  Fall, dass du später mal in der MainView auf eine einzelne Aktie (z. B. "AAPL") klickst und sich dann ein 
+ * Dialog mit einem exakten KI-Deep-Dive nur für diesen einen Ticker öffnet.
+ */
   async getStockDetails(ticker) {
     return { ticker, price: "0.00", logic_notes: ["Live-Analyse V34.0 aktiv."] };
   }
