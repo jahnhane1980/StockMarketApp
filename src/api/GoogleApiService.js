@@ -36,9 +36,8 @@ export class GoogleApiService {
 
       clearTimeout(timeoutId);
 
-      // FIX: Behandelt jetzt 503 (Server überlastet) UND 429 (Rate Limit / Too Many Requests)
       if ((response.status === 503 || response.status === 429) && retryCount < 2) {
-        const delay = response.status === 429 ? 5000 : 3000; // Bei Rate Limit länger warten
+        const delay = response.status === 429 ? 5000 : 3000; 
         if (global.log) global.log.warn(`API Status ${response.status}: Retry ${retryCount + 1} nach ${delay}ms`);
         await new Promise(res => setTimeout(res, delay));
         return this._callAi(prompt, inputData, retryCount + 1);
@@ -50,7 +49,16 @@ export class GoogleApiService {
       const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!rawText) throw new Error("INVALID_AI_RESPONSE");
 
-      return JSON.parse(rawText.replace(/```json|```/g, '').trim());
+      // NEU: Robuste JSON Extraktion (ignoriert Markdown oder Text vor/nach dem JSON)
+      const firstBrace = rawText.indexOf('{');
+      const lastBrace = rawText.lastIndexOf('}');
+      
+      if (firstBrace === -1 || lastBrace === -1) {
+        throw new Error("KI lieferte kein valides JSON-Format.");
+      }
+      
+      const cleanJson = rawText.substring(firstBrace, lastBrace + 1);
+      return JSON.parse(cleanJson);
       
     } catch (error) {
       clearTimeout(timeoutId);
@@ -66,7 +74,6 @@ export class GoogleApiService {
   }
 
   async getRadarData() {
-    // Command Prompt für den Markt-Scan
     const RADAR_PROMPT = "MISSION: Autonomer Markt-Scan. Identifiziere 5 Ticker (A-E) mit Score 0-10. Return JSON: watchlist_results [ticker, score, core_reason_short, core_reason_long, zones].";
     return this._callAi(RADAR_PROMPT, { mode: 'autonomous_scan' });
   }

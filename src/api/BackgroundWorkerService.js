@@ -1,10 +1,11 @@
-// src/api/BackgroundWorkerService.js - Robust Permissions & Worker Logic
+// src/api/BackgroundWorkerService.js - Robust Permissions & Worker Logic (Full-Body)
 
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as Notifications from 'expo-notifications';
 import { Config } from '../core/Config';
 import { RadarRepository } from '../store/RadarRepository';
+import { SettingsRepository } from '../store/SettingsRepository'; // NEU IMPORTIERT
 
 export const BackgroundWorkerService = {
   /**
@@ -45,6 +46,11 @@ export const BackgroundWorkerService = {
   defineMarketTask: () => {
     TaskManager.defineTask(Config.WORKER.TASK_NAME, async () => {
       try {
+        // NEU: Einstellungen laden und Config füttern, bevor der Task startet (Amnesie-Fix)
+        const settings = await SettingsRepository.getSettings();
+        Config.GOOGLE_API.KEY = settings.apiKey;
+        Config.TEST = settings.testMode;
+
         const now = new Date();
         const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         

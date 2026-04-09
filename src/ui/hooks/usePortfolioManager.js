@@ -1,4 +1,4 @@
-// src/ui/hooks/usePortfolioManager.js - Auto-Reload bei Moduswechsel (Full-Body)
+// src/ui/hooks/usePortfolioManager.js - Auto-Reload & Cache Invalidation (Full-Body)
 
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
@@ -42,7 +42,6 @@ export const usePortfolioManager = () => {
       setIsLoading(true);
       
       if (forceRefresh) {
-        // FIX: Saubere Clear-Aufrufe statt hart codierter Storage-Keys
         await MacroRepository.clearCache();
         await RadarRepository.clearCache();
       }
@@ -95,24 +94,26 @@ export const usePortfolioManager = () => {
 
   const handleSaveAsset = async (asset) => {
     await AssetRepository.save(asset);
+    await MacroRepository.clearCache(); // NEU: KI-Cache zwingend löschen
     await refreshAssets();
     toggleDialog('addAsset', false);
   };
 
   const handleSaveTransaction = async (ticker, data) => {
     await AssetRepository.addTransaction(ticker, data);
+    await MacroRepository.clearCache(); // NEU: KI-Cache zwingend löschen
     await refreshAssets();
     toggleDialog('transaction', false);
   };
 
   const handleUpdateFinance = async (newData) => {
     await FinancialRepository.saveData(newData);
+    await MacroRepository.clearCache(); // NEU: KI-Cache zwingend löschen
     setFinData(newData);
     toggleDialog('finance', false);
   };
 
   const handleUpdateSettings = async (newSet) => {
-    // NEU: Prüfen, ob der Schalter umgelegt wurde
     const modeChanged = settings.testMode !== newSet.testMode;
     
     await SettingsRepository.saveSettings(newSet);
@@ -122,10 +123,9 @@ export const usePortfolioManager = () => {
     setSettings(newSet);
     toggleDialog('settings', false);
 
-    // NEU: Wenn Modus gewechselt, sofortiges Neuladen aus der neuen Storage-Schublade
     if (modeChanged) {
       if (global.log) global.log.info("System-Modus gewechselt. Lade Arbeitsbereich neu...");
-      loadInitialData(false); // false, damit wir den Cache der neuen Seite nicht sofort löschen
+      loadInitialData(false); 
     }
   };
 
