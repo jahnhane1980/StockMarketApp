@@ -5,6 +5,6 @@ export const Config = {
     URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent",
     KEY: "",
   },
-  TEST: false, // Steuerung von Mocks/Echtbetrieb
+  TEST: true, // Steuerung von Mocks/Echtbetrieb
   ADMIN_EMAIL: "jahnhane@gmail.com",
 };

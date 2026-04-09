@@ -1,4 +1,4 @@
-// src/ui/hooks/usePortfolioManager.js - Zentrales Management (Full-Body Sync & Logger Fix)
+// src/ui/hooks/usePortfolioManager.js - Jump-to-Ticker Support (Full-Body)
 
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
@@ -7,6 +7,7 @@ import { AssetRepository } from '../../store/AssetRepository';
 import { SettingsRepository } from '../../store/SettingsRepository';
 import { MacroRepository } from '../../store/MacroRepository';
 import { FinancialRepository } from '../../store/FinancialRepository';
+import { RadarRepository } from '../../store/RadarRepository'; 
 
 export const usePortfolioManager = () => {
   const [dialogs, setDialogs] = useState({
@@ -16,6 +17,7 @@ export const usePortfolioManager = () => {
     history: false,
     macro: false,
     finance: false,
+    radar: false,
   });
 
   const [activeTicker, setActiveTicker] = useState(null);
@@ -25,11 +27,26 @@ export const usePortfolioManager = () => {
   const [settings, setSettings] = useState({ apiKey: '', theme: 'dark' });
   const [macroData, setMacroData] = useState(null);
   const [finData, setFinData] = useState({ currentCash: 0, debtAmount: 0 });
+  const [radarData, setRadarData] = useState(null); 
 
   const toggleDialog = (key, visible, data = null) => {
     setDialogs(prev => ({ ...prev, [key]: visible }));
-    if (key === 'addAsset' && !visible) setEditingAsset(null);
-    if (key === 'transaction' && visible) setActiveTicker(data);
+    
+    if (!visible) {
+      if (key === 'addAsset') setEditingAsset(null);
+      // Wir löschen den activeTicker beim Schließen nicht sofort, 
+      // damit Animationen im Hintergrund auslaufen können.
+      return;
+    }
+
+    // Beim Öffnen: Daten zuweisen
+    if (key === 'transaction' || key === 'radar') {
+      setActiveTicker(data); // data ist hier das Ticker-Symbol
+    }
+    
+    if (key === 'addAsset' && data) {
+      setEditingAsset(data);
+    }
   };
 
   useEffect(() => {
@@ -38,19 +55,20 @@ export const usePortfolioManager = () => {
         await Font.loadAsync(Ionicons.font);
         setFontsLoaded(true);
         
-        const [loadedAssets, loadedSettings, status, finance] = await Promise.all([
+        const [loadedAssets, loadedSettings, status, finance, radar] = await Promise.all([
           AssetRepository.getAll(),
           SettingsRepository.getSettings(),
           MacroRepository.getStatus(),
-          FinancialRepository.getData()
+          FinancialRepository.getData(),
+          RadarRepository.getData()
         ]);
 
         setAssets(loadedAssets);
         setSettings(loadedSettings);
         setMacroData(status);
         setFinData(finance);
+        setRadarData(radar);
       } catch (e) {
-        // Fix: Sicherer Zugriff auf den globalen Logger
         if (global.log) {
           global.log.error("usePortfolioManager: Initialisierungsfehler", e);
         }
@@ -70,7 +88,7 @@ export const usePortfolioManager = () => {
       await refreshAssets();
       toggleDialog('addAsset', false);
     } catch (e) {
-      if (global.log) global.log.error("usePortfolioManager: Fehler beim Speichern des Assets", e);
+      if (global.log) global.log.error("usePortfolioManager: Fehler beim Speichern", e);
     }
   };
 
@@ -80,7 +98,7 @@ export const usePortfolioManager = () => {
       await refreshAssets();
       toggleDialog('transaction', false);
     } catch (e) {
-      if (global.log) global.log.error("usePortfolioManager: Fehler beim Speichern der Transaktion", e);
+      if (global.log) global.log.error("usePortfolioManager: Fehler bei Transaktion", e);
     }
   };
 
@@ -90,7 +108,7 @@ export const usePortfolioManager = () => {
       setFinData(newData);
       toggleDialog('finance', false);
     } catch (e) {
-      if (global.log) global.log.error("usePortfolioManager: Fehler beim Update der Finanzen", e);
+      if (global.log) global.log.error("usePortfolioManager: Fehler bei Finanzen", e);
     }
   };
 
@@ -100,12 +118,12 @@ export const usePortfolioManager = () => {
       setSettings(newSet);
       toggleDialog('settings', false);
     } catch (e) {
-      if (global.log) global.log.error("usePortfolioManager: Fehler beim Update der Einstellungen", e);
+      if (global.log) global.log.error("usePortfolioManager: Fehler bei Settings", e);
     }
   };
 
   return {
-    state: { dialogs, activeTicker, editingAsset, fontsLoaded, assets, settings, macroData, finData },
+    state: { dialogs, activeTicker, editingAsset, fontsLoaded, assets, settings, macroData, finData, radarData },
     actions: { 
       toggleDialog, 
       setEditingAsset, 
