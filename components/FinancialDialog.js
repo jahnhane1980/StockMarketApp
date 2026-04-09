@@ -1,16 +1,9 @@
-// components/FinancialDialog.js - Professionelles Refactoring (Full-Body)
+// components/FinancialDialog.js - 100% Theme-basiert (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Modal, 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  TouchableWithoutFeedback, 
-  Keyboard, 
-  ScrollView 
+  Modal, View, Text, TextInput, TouchableOpacity, 
+  StyleSheet, TouchableWithoutFeedback, Keyboard, ScrollView 
 } from 'react-native';
 import { useTheme } from '../ThemeContext';
 
@@ -40,6 +33,7 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
   };
 
   const dynamicStyles = {
+    overlay: { backgroundColor: theme.colors.bgOverlay },
     container: { 
       backgroundColor: theme.colors.bgMain, 
       borderColor: theme.colors.borderSubtle,
@@ -54,12 +48,7 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
       fontWeight: theme.typography.weight.bold,
       marginBottom: theme.spacing.lg
     },
-    inputGroup: { marginBottom: theme.spacing.md },
-    label: { 
-      color: theme.colors.textSubtle, 
-      fontSize: theme.typography.size.xs,
-      marginBottom: theme.spacing.xs 
-    },
+    label: { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs, marginBottom: theme.spacing.xs },
     input: { 
       color: theme.colors.textPrimary, 
       borderColor: theme.colors.borderSubtle,
@@ -68,16 +57,16 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
       fontSize: theme.typography.size.md
     },
     btnPrimary: { backgroundColor: theme.colors.brandPrimary, padding: theme.spacing.md },
+    btnTextPrimary: { color: theme.colors.textOnPrimary, fontWeight: theme.typography.weight.bold },
     btnSecondary: { backgroundColor: theme.colors.bgSurface, padding: theme.spacing.md }
   };
 
   return (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
+      <TouchableOpacity style={[styles.modalOverlay, dynamicStyles.overlay]} activeOpacity={1} onPress={onClose}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={dynamicStyles.container}>
             <Text style={[styles.title, dynamicStyles.title]}>Finanz-Status</Text>
-            
             <ScrollView showsVerticalScrollIndicator={false}>
               {[
                 { label: 'Verfügbares Cash (€)', value: cash, set: setCash },
@@ -85,21 +74,15 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
                 { label: 'Fremdkapital (€)', value: debt, set: setDebt },
                 { label: 'Kreditzins p.a. (%)', value: dInt, set: setDInt },
               ].map((item, idx) => (
-                <View key={idx} style={dynamicStyles.inputGroup}>
+                <View key={idx} style={{ marginBottom: theme.spacing.md }}>
                   <Text style={dynamicStyles.label}>{item.label}</Text>
-                  <TextInput 
-                    style={dynamicStyles.input} 
-                    keyboardType="decimal-pad" 
-                    value={item.value} 
-                    onChangeText={item.set} 
-                  />
+                  <TextInput style={dynamicStyles.input} keyboardType="decimal-pad" value={item.value} onChangeText={item.set} />
                 </View>
               ))}
             </ScrollView>
-
-            <View style={styles.btnRow}>
+            <View style={{ marginTop: theme.spacing.lg, gap: theme.spacing.md }}>
               <TouchableOpacity style={[styles.btn, dynamicStyles.btnPrimary]} onPress={handleSave}>
-                <Text style={styles.btnText}>Speichern</Text>
+                <Text style={dynamicStyles.btnTextPrimary}>Speichern</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.btn, dynamicStyles.btnSecondary]} onPress={onClose}>
                 <Text style={{ color: theme.colors.textPrimary }}>Abbrechen</Text>
@@ -113,11 +96,9 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   title: { textAlign: 'center' },
-  btnRow: { marginTop: 24, gap: 12 },
-  btn: { borderRadius: 6, alignItems: 'center' },
-  btnText: { color: '#FFFFFF', fontWeight: 'bold' }
+  btn: { borderRadius: 6, alignItems: 'center' }
 });
 
 export default FinancialDialog;

@@ -1,4 +1,4 @@
-// components/MacroDetailsDialog.js - Reaktives Theme & Theme-Tokens (Full-Body)
+// components/MacroDetailsDialog.js - 100% Theme-basiert (Full-Body)
 
 import React from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
@@ -10,44 +10,53 @@ const MacroDetailsDialog = ({ visible, data, onClose }) => {
 
   const InfoRow = ({ label, value, color }) => (
     <View style={styles.infoRow}>
-      <Text style={[styles.infoLabel, { color: theme.colors.textSubtle, fontSize: theme.typography.size.sm }]}>{label}</Text>
-      <Text style={[styles.infoValue, { color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }, color && { color }]}>
+      <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.sm }}>{label}</Text>
+      <Text style={[{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm, fontWeight: theme.typography.weight.medium }, color && { color }]}>
         {value !== undefined && value !== null ? value : '---'}
       </Text>
     </View>
   );
 
+  const dynamicStyles = {
+    overlay: { backgroundColor: theme.colors.bgOverlay },
+    container: { 
+      backgroundColor: theme.colors.bgMain, borderColor: theme.colors.borderSubtle, 
+      width: theme.layout.modalWidth, padding: theme.spacing.lg, borderRadius: theme.radii.dialog, 
+      maxHeight: theme.layout.dialogMaxHeight, borderWidth: theme.effects.borderWidthThin 
+    },
+    title: { color: theme.colors.textPrimary, fontSize: theme.typography.size.xl, fontWeight: theme.typography.weight.bold },
+    section: { borderBottomColor: theme.colors.borderSubtle, marginBottom: theme.spacing.lg, paddingBottom: theme.spacing.sm, borderBottomWidth: theme.effects.borderWidthThin },
+    logicText: { color: theme.colors.textPrimary, fontSize: theme.typography.size.sm, fontStyle: theme.typography.style.italic, marginBottom: theme.spacing.sm, lineHeight: 20 },
+    highlightBox: { backgroundColor: theme.colors.bgSurface, padding: theme.spacing.md, borderRadius: theme.radii.standard }
+  };
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-        <View style={[styles.container, { backgroundColor: theme.colors.bgMain, borderColor: theme.colors.borderSubtle, width: theme.layout.modalWidth, padding: theme.spacing.lg, borderRadius: theme.radii.dialog, maxHeight: theme.layout.dialogMaxHeight }]}>
-          <Text style={[styles.title, { color: theme.colors.textPrimary, fontSize: theme.typography.size.xl }]}>Market Intelligence</Text>
-          
+      <TouchableOpacity style={[styles.overlay, dynamicStyles.overlay]} activeOpacity={1} onPress={onClose}>
+        <View style={dynamicStyles.container}>
+          <Text style={[styles.title, dynamicStyles.title]}>Market Intelligence</Text>
           <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={[styles.section, { borderBottomColor: theme.colors.borderSubtle, marginBottom: theme.spacing.lg, paddingBottom: theme.spacing.sm }]}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs }]}>Summary & Risk</Text>
+            <View style={dynamicStyles.section}>
+              <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.xs, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase', marginBottom: theme.spacing.sm }}>Summary & Risk</Text>
               <InfoRow label="Global UI Score" value={data.action_summary?.global_ui_score} />
               <InfoRow label="Urgency" value={data.action_summary?.urgency} color={theme.colors.statusAlert} />
             </View>
-
-            <View style={[styles.section, { borderBottomColor: theme.colors.borderSubtle, marginBottom: theme.spacing.lg, paddingBottom: theme.spacing.sm }]}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs }]}>Cycling Navigator</Text>
-              <Text style={[styles.logicText, { color: theme.colors.textPrimary, fontSize: theme.typography.size.sm, marginBottom: theme.spacing.sm }]}>{data.cycling_navigator?.logic}</Text>
-              <View style={[styles.highlightBox, { backgroundColor: theme.colors.bgSurface, padding: theme.spacing.md, borderRadius: theme.radii.standard }]}>
+            <View style={dynamicStyles.section}>
+              <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.xs, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase', marginBottom: theme.spacing.sm }}>Cycling Navigator</Text>
+              <Text style={dynamicStyles.logicText}>{data.cycling_navigator?.logic}</Text>
+              <View style={dynamicStyles.highlightBox}>
                 <Text style={{ color: theme.colors.brandPrimary, fontSize: theme.typography.size.xs, fontWeight: theme.typography.weight.bold }}>Recommendation</Text>
                 <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm, marginTop: 2 }}>{data.cycling_navigator?.recommendation || 'HOLD'}</Text>
               </View>
             </View>
-
-            <View style={[styles.section, { borderBottomColor: theme.colors.borderSubtle, borderBottomWidth: 0 }]}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs }]}>Macro Validation</Text>
+            <View style={[dynamicStyles.section, { borderBottomWidth: 0 }]}>
+              <Text style={{ color: theme.colors.textSubtle, fontSize: theme.typography.size.xs, fontWeight: theme.typography.weight.bold, textTransform: 'uppercase', marginBottom: theme.spacing.sm }}>Macro Validation</Text>
               <InfoRow label="VIX State" value={data.metrics_validation?.macro?.vix_state} />
               <InfoRow label="Real Yield" value={data.metrics_validation?.macro?.real_yield} />
             </View>
           </ScrollView>
-
-          <TouchableOpacity style={[styles.button, { backgroundColor: theme.colors.brandPrimary, padding: theme.spacing.md, borderRadius: theme.radii.standard, marginTop: theme.spacing.md }]} onPress={onClose}>
-            <Text style={[styles.buttonText, { fontWeight: theme.typography.weight.bold }]}>Schließen</Text>
+          <TouchableOpacity style={{ backgroundColor: theme.colors.brandPrimary, padding: theme.spacing.md, borderRadius: theme.radii.standard, marginTop: theme.spacing.md, alignItems: 'center' }} onPress={onClose}>
+            <Text style={{ color: theme.colors.textOnPrimary, fontWeight: theme.typography.weight.bold }}>Schließen</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -56,18 +65,9 @@ const MacroDetailsDialog = ({ visible, data, onClose }) => {
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
-  container: { borderWidth: 1 },
-  title: { fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
-  section: { borderBottomWidth: 1 },
-  sectionTitle: { fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  infoLabel: {},
-  infoValue: { fontWeight: '500' },
-  logicText: { fontStyle: 'italic', lineHeight: 20 },
-  highlightBox: {},
-  button: { alignItems: 'center' },
-  buttonText: { color: '#FFFFFF' }
+  overlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  title: { marginBottom: 16, textAlign: 'center' },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }
 });
 
 export default MacroDetailsDialog;

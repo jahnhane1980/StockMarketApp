@@ -1,4 +1,4 @@
-// components/AddAssetDialog.js - Reaktives Theme (Full-Body)
+// components/AddAssetDialog.js - 100% Theme-basiert (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
@@ -23,10 +23,20 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
     const isSelected = current === value;
     return (
       <TouchableOpacity
-        style={[styles.chip, { borderColor: theme.colors.borderSubtle }, isSelected && { backgroundColor: theme.colors.brandPrimary, borderColor: theme.colors.brandPrimary }]}
+        style={[
+          styles.chip, 
+          { borderColor: theme.colors.borderSubtle, borderWidth: theme.effects.borderWidthThin, borderRadius: theme.radii.standard, paddingVertical: theme.spacing.sm }, 
+          isSelected && { backgroundColor: theme.colors.brandPrimary, borderColor: theme.colors.brandPrimary }
+        ]}
         onPress={() => onChange(value)}
       >
-        <Text style={[styles.chipText, { color: theme.colors.textSubtle }, isSelected && { color: theme.colors.textOnPrimary, fontWeight: 'bold' }]}>{label}</Text>
+        <Text style={{ 
+          fontSize: theme.typography.size.sm,
+          color: isSelected ? theme.colors.textOnPrimary : theme.colors.textSubtle, 
+          fontWeight: isSelected ? theme.typography.weight.bold : theme.typography.weight.normal 
+        }}>
+          {label}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -37,43 +47,59 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
   };
 
   const dynamicStyles = {
-    container: { backgroundColor: theme.colors.bgMain, borderColor: theme.colors.borderSubtle },
-    title: { color: theme.colors.textPrimary },
-    label: { color: theme.colors.textSubtle },
-    input: { color: theme.colors.textPrimary, borderColor: theme.colors.borderSubtle, backgroundColor: theme.dark ? 'transparent' : theme.colors.bgSurface }
+    overlay: { backgroundColor: theme.colors.bgOverlay },
+    container: { 
+      backgroundColor: theme.colors.bgMain, 
+      borderColor: theme.colors.borderSubtle,
+      borderTopLeftRadius: theme.radii.dialog, 
+      borderTopRightRadius: theme.radii.dialog, 
+      padding: theme.spacing.lg, 
+      borderTopWidth: theme.effects.borderWidthThin 
+    },
+    title: { color: theme.colors.textPrimary, fontSize: theme.typography.size.xl, fontWeight: theme.typography.weight.bold, marginBottom: theme.spacing.lg },
+    label: { color: theme.colors.textSubtle, fontSize: theme.typography.size.sm, marginBottom: theme.spacing.xs },
+    input: { 
+      color: theme.colors.textPrimary, 
+      borderColor: theme.colors.borderSubtle,
+      borderWidth: theme.effects.borderWidthThin, 
+      borderRadius: theme.radii.input, 
+      padding: theme.spacing.sm, 
+      fontSize: theme.typography.size.md,
+      backgroundColor: theme.dark ? 'transparent' : theme.colors.bgSurface 
+    }
   };
 
   return (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
+      <TouchableOpacity style={[styles.modalOverlay, dynamicStyles.overlay]} activeOpacity={1} onPress={onClose}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={[styles.dialogContainer, dynamicStyles.container]}>
             <Text style={[styles.dialogTitle, dynamicStyles.title]}>{initialAsset ? 'Basisdaten bearbeiten' : 'Neues Asset hinzufügen'}</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, dynamicStyles.label]}>Ticker / Symbol</Text>
-                <TextInput style={[styles.textInput, dynamicStyles.input, !!initialAsset && { opacity: 0.5 }]} value={ticker} onChangeText={setTicker} autoCapitalize="characters" editable={!initialAsset} placeholderTextColor={theme.colors.textSubtle} />
+              <View style={{ marginBottom: theme.spacing.md }}>
+                <Text style={dynamicStyles.label}>Ticker / Symbol</Text>
+                <TextInput style={[dynamicStyles.input, !!initialAsset && { opacity: theme.effects.opacityDisabled }]} value={ticker} onChangeText={setTicker} autoCapitalize="characters" editable={!initialAsset} placeholderTextColor={theme.colors.textSubtle} />
               </View>
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, dynamicStyles.label]}>Status</Text>
+              <View style={{ marginBottom: theme.spacing.md }}>
+                <Text style={dynamicStyles.label}>Status</Text>
                 <View style={styles.chipRow}>
                   <SelectionChip label="Beobachten" value={ASSET_STATUS.WATCH} current={status} onChange={setStatus} />
                   <SelectionChip label="Portfolio" value={ASSET_STATUS.OWNED} current={status} onChange={setStatus} />
                 </View>
               </View>
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, dynamicStyles.label]}>Asset Typ</Text>
+              <View style={{ marginBottom: theme.spacing.md }}>
+                <Text style={dynamicStyles.label}>Asset Typ</Text>
                 <View style={styles.chipRow}>
                   <SelectionChip label="A (Growth)" value={ASSET_TYPES.A} current={type} onChange={setType} />
                   <SelectionChip label="B (Mega)" value={ASSET_TYPES.B} current={type} onChange={setType} />
                 </View>
               </View>
             </ScrollView>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={[styles.buttonPrimary, { backgroundColor: theme.colors.brandPrimary }]} onPress={handleSave}>
-                <Text style={styles.buttonPrimaryText}>Asset speichern</Text>
+            <View style={{ marginTop: theme.spacing.md, gap: theme.spacing.md }}>
+              <TouchableOpacity style={[styles.buttonPrimary, { backgroundColor: theme.colors.brandPrimary, paddingVertical: theme.spacing.md, borderRadius: theme.radii.standard }]} onPress={handleSave}>
+                <Text style={{ color: theme.colors.textOnPrimary, fontWeight: theme.typography.weight.bold }}>Asset speichern</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.buttonSecondary, { backgroundColor: theme.colors.bgSurface }]} onPress={onClose}>
+              <TouchableOpacity style={[styles.buttonSecondary, { backgroundColor: theme.colors.bgSurface, paddingVertical: theme.spacing.md, borderRadius: theme.radii.standard }]} onPress={onClose}>
                 <Text style={{ color: theme.colors.textPrimary }}>Abbrechen</Text>
               </TouchableOpacity>
             </View>
@@ -85,19 +111,13 @@ const AddAssetDialog = ({ visible, onClose, onSave, initialAsset }) => {
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  dialogContainer: { borderTopLeftRadius: 8, borderTopRightRadius: 8, padding: 24, borderTopWidth: 1 },
-  dialogTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-  inputGroup: { marginBottom: 16 },
-  inputLabel: { fontSize: 14, marginBottom: 4 },
-  textInput: { borderWidth: 1, borderRadius: 4, padding: 8, fontSize: 16 },
-  chipRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  chip: { flex: 1, paddingVertical: 8, borderWidth: 1, borderRadius: 6, alignItems: 'center' },
-  chipText: { fontSize: 14 },
-  buttonContainer: { marginTop: 16, gap: 12 },
-  buttonPrimary: { paddingVertical: 12, borderRadius: 6, alignItems: 'center' },
-  buttonPrimaryText: { color: '#FFFFFF', fontWeight: 'bold' },
-  buttonSecondary: { paddingVertical: 12, borderRadius: 6, alignItems: 'center', borderWidth: 1, borderColor: 'transparent' }
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  dialogContainer: {},
+  dialogTitle: { textAlign: 'center' },
+  chipRow: { flexDirection: 'row', gap: 8 },
+  chip: { flex: 1, alignItems: 'center' },
+  buttonPrimary: { alignItems: 'center' },
+  buttonSecondary: { alignItems: 'center' }
 });
 
 export default AddAssetDialog;

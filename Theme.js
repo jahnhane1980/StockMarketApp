@@ -1,4 +1,4 @@
-// Theme.js - Konsolidierte Design Tokens (Full-Body Sync)
+// Theme.js - Vollständige Design Tokens für Dark und Light Mode (Full-Body)
 
 const sharedTokens = {
   radii: { standard: 6, input: 4, dialog: 8, full: 99 },
@@ -17,19 +17,28 @@ const sharedTokens = {
     tickerWidth: 80, 
     priceMinWidth: 60, 
     dialogMaxHeight: '85%', 
-    modalWidth: '90%', // Neu: Konsistente Modal-Breite
+    modalWidth: '90%', 
     iconButtonSize: 40 
   },
   typography: {
     size: { 
-      xxs: 10, // Neu: Für Labels
+      xxs: 10, 
       xs: 12, 
       sm: 14, 
       md: 16, 
       lg: 18, 
       xl: 22 
     },
-    weight: { normal: '400', medium: '500', semibold: '600', bold: 'bold' }
+    weight: { 
+      normal: '400', 
+      medium: '500', 
+      semibold: '600', 
+      bold: 'bold' 
+    },
+    style: {
+      italic: 'italic',
+      normal: 'normal'
+    }
   },
   effects: { 
     shadowOpacityFull: 1, 
@@ -38,11 +47,11 @@ const sharedTokens = {
     shadowRadiusMarker: 6, 
     shadowRadiusDialog: 10, 
     borderWidthThin: 1,
-    opacityDisabled: 0.5 // Neu: Für ausgegraute Ticker
+    opacityDisabled: 0.5 
   },
   icons: { 
-    xs: 16, // Neu
-    sm: 18, // Neu: Angepasst für Financial Bar
+    xs: 16, 
+    sm: 18, 
     md: 24, 
     lg: 30 
   }

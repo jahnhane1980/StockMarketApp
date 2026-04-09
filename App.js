@@ -1,4 +1,4 @@
-// App.js - Hauptbildschirm mit Theme-Support (Full-Body Sync)
+// App.js - Hauptbildschirm mit 100% Theme-Token Integration (Full-Body)
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -120,7 +120,13 @@ export default function App() {
       borderWidth: currentTheme.effects.borderWidthThin, 
       borderColor: currentTheme.colors.borderSubtle 
     },
-    finLabel: { color: currentTheme.colors.textSubtle, fontSize: currentTheme.typography.size.xxs, textTransform: 'uppercase', fontWeight: currentTheme.typography.weight.bold, marginBottom: 2 },
+    finLabel: { 
+      color: currentTheme.colors.textSubtle, 
+      fontSize: currentTheme.typography.size.xxs, 
+      textTransform: 'uppercase', 
+      fontWeight: currentTheme.typography.weight.bold, 
+      marginBottom: 2 
+    },
     finValue: { color: currentTheme.colors.textPrimary, fontSize: currentTheme.typography.size.sm, fontWeight: currentTheme.typography.weight.semibold },
     macroIndicator: { width: 12, height: 12, borderRadius: 6 },
     fab: { 
@@ -144,13 +150,16 @@ export default function App() {
           <StatusBar barStyle={currentTheme.dark ? "light-content" : "dark-content"} backgroundColor={currentTheme.colors.bgMain} />
 
           <View style={dynamicStyles.toolbar}>
-            <View style={styles.toolbarLeft}>
-              <TouchableOpacity style={styles.macroTrigger} onPress={() => setMacroVisible(true)}>
+            <View style={[styles.toolbarLeft, { gap: currentTheme.spacing.sm }]}>
+              <TouchableOpacity 
+                style={[styles.macroTrigger, { gap: currentTheme.spacing.sm }]} 
+                onPress={() => setMacroVisible(true)}
+              >
                 <Animated.View style={[dynamicStyles.macroIndicator, { backgroundColor: getIndicatorColor(), transform: [{ scale: pulseAnim }] }]} />
                 <Text style={dynamicStyles.toolbarText}>Macro</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.toolbarRight}>
+            <View style={[styles.toolbarRight, { gap: currentTheme.spacing.sm }]}>
               <TouchableOpacity style={styles.iconButton} onPress={() => setHistoryVisible(true)}>
                 {fontsLoaded && <Ionicons name="receipt-outline" size={currentTheme.icons.md} color={currentTheme.colors.textPrimary} />}
               </TouchableOpacity>
@@ -160,19 +169,19 @@ export default function App() {
             </View>
           </View>
 
-          <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent}>
+          <ScrollView style={styles.listContainer} contentContainerStyle={{ padding: currentTheme.spacing.md, gap: currentTheme.spacing.md }}>
             <View style={dynamicStyles.finSummaryRow}>
-              <View style={styles.finItem}>
+              <View style={{ flex: 1 }}>
                 <Text style={dynamicStyles.finLabel}>Verfügbares Cash</Text>
                 <Text style={dynamicStyles.finValue}>{finData.currentCash.toLocaleString()} €</Text>
               </View>
-              <View style={styles.finItem}>
+              <View style={{ flex: 1 }}>
                 <Text style={dynamicStyles.finLabel}>Fremdkapital</Text>
                 <Text style={[dynamicStyles.finValue, finData.debtAmount > 0 && { color: currentTheme.colors.statusCritical }]}>
                   {finData.debtAmount.toLocaleString()} €
                 </Text>
               </View>
-              <TouchableOpacity style={styles.finEditIcon} onPress={() => setFinVisible(true)}>
+              <TouchableOpacity style={{ padding: currentTheme.spacing.xs }} onPress={() => setFinVisible(true)}>
                 {fontsLoaded && <Ionicons name="options-outline" size={currentTheme.icons.sm} color={currentTheme.colors.brandPrimary} />}
               </TouchableOpacity>
             </View>
@@ -214,11 +223,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   toolbarLeft: { flexDirection: 'row', alignItems: 'center' },
-  macroTrigger: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  toolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  macroTrigger: { flexDirection: 'row', alignItems: 'center' },
+  toolbarRight: { flexDirection: 'row', alignItems: 'center' },
   iconButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  listContainer: { flex: 1 },
-  listContent: { padding: 16, gap: 16 },
-  finItem: { flex: 1 },
-  finEditIcon: { padding: 4 },
+  listContainer: { flex: 1 }
 });

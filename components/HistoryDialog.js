@@ -1,4 +1,4 @@
-// components/HistoryDialog.js - Reaktives Theme & Theme-Tokens (Full-Body)
+// components/HistoryDialog.js - 100% Theme-basiert (Full-Body)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -67,8 +67,8 @@ const HistoryDialog = ({ visible, onClose }) => {
 
   const dynamicStyles = {
     container: { backgroundColor: theme.colors.bgMain },
-    header: { borderColor: theme.colors.borderSubtle, padding: theme.spacing.md },
-    title: { color: theme.colors.textPrimary, fontSize: theme.typography.size.lg },
+    header: { borderColor: theme.colors.borderSubtle, padding: theme.spacing.md, borderBottomWidth: theme.effects.borderWidthThin },
+    title: { color: theme.colors.textPrimary, fontSize: theme.typography.size.lg, fontWeight: theme.typography.weight.bold },
     search: { 
       backgroundColor: theme.colors.bgSurface, 
       color: theme.colors.textPrimary, 
@@ -77,8 +77,20 @@ const HistoryDialog = ({ visible, onClose }) => {
       fontSize: theme.typography.size.md,
       borderRadius: theme.radii.standard
     },
-    sectionHeader: { backgroundColor: theme.colors.bgSurface, color: theme.colors.textSubtle, padding: theme.spacing.xs, paddingHorizontal: theme.spacing.md },
-    row: { borderColor: theme.colors.borderSubtle, color: theme.colors.textPrimary, padding: theme.spacing.md },
+    sectionHeader: { 
+      backgroundColor: theme.colors.bgSurface, 
+      color: theme.colors.textSubtle, 
+      padding: theme.spacing.xs, 
+      paddingHorizontal: theme.spacing.md,
+      fontSize: theme.typography.size.xxs,
+      fontWeight: theme.typography.weight.bold
+    },
+    row: { 
+      borderColor: theme.colors.borderSubtle, 
+      padding: theme.spacing.md, 
+      borderBottomWidth: theme.effects.borderWidthThin 
+    },
+    tickerText: { color: theme.colors.textPrimary, fontSize: theme.typography.size.md, fontWeight: theme.typography.weight.bold },
     subText: { color: theme.colors.textSubtle, fontSize: theme.typography.size.xs }
   };
 
@@ -86,14 +98,14 @@ const HistoryDialog = ({ visible, onClose }) => {
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <SafeAreaView style={[styles.container, dynamicStyles.container]}>
         <View style={[styles.header, dynamicStyles.header]}>
-          <Text style={[styles.title, dynamicStyles.title]}>Transaktions-Historie</Text>
+          <Text style={dynamicStyles.title}>Transaktions-Historie</Text>
           <TouchableOpacity onPress={onClose}>
             <Text style={{ color: theme.colors.brandPrimary, fontWeight: theme.typography.weight.medium }}>Schließen</Text>
           </TouchableOpacity>
         </View>
 
         <TextInput 
-          style={[styles.searchBar, dynamicStyles.search]} 
+          style={dynamicStyles.search} 
           placeholder="Ticker filtern..." 
           placeholderTextColor={theme.colors.textSubtle}
           value={filter}
@@ -106,24 +118,26 @@ const HistoryDialog = ({ visible, onClose }) => {
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={({ section: { title } }) => (
-            <View style={[styles.sectionHeaderBg, { backgroundColor: dynamicStyles.sectionHeader.backgroundColor, padding: dynamicStyles.sectionHeader.padding, paddingHorizontal: dynamicStyles.sectionHeader.paddingHorizontal }]}>
-              <Text style={[styles.sectionHeader, { color: dynamicStyles.sectionHeader.color, fontSize: dynamicStyles.subText.fontSize }]}>{title}</Text>
+            <View style={{ backgroundColor: dynamicStyles.sectionHeader.backgroundColor, padding: dynamicStyles.sectionHeader.padding, paddingHorizontal: dynamicStyles.sectionHeader.paddingHorizontal }}>
+              <Text style={{ color: dynamicStyles.sectionHeader.color, fontSize: dynamicStyles.sectionHeader.fontSize, fontWeight: dynamicStyles.sectionHeader.fontWeight, textTransform: 'uppercase' }}>{title}</Text>
             </View>
           )}
           renderItem={({ item }) => (
-            <View style={[styles.txRow, { borderColor: dynamicStyles.row.borderColor, padding: dynamicStyles.row.padding }]}>
+            <View style={dynamicStyles.row}>
               <View>
-                <Text style={[styles.txTicker, { color: theme.colors.textPrimary, fontSize: theme.typography.size.md }]}>{item.ticker}</Text>
-                <Text style={[styles.txDate, dynamicStyles.subText]}>{item.userTimestamp || '---'}</Text>
+                <Text style={dynamicStyles.tickerText}>{item.ticker}</Text>
+                <Text style={dynamicStyles.subText}>{item.userTimestamp || '---'}</Text>
               </View>
               <View style={styles.txValues}>
-                <Text style={[
-                  styles.txAction, 
-                  { color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical, fontSize: dynamicStyles.subText.fontSize }
-                ]}>
+                <Text style={{ 
+                  fontSize: theme.typography.size.xs, 
+                  fontWeight: theme.typography.weight.bold, 
+                  marginBottom: 2,
+                  color: item.action === ACTIONS.BUY ? theme.colors.brandPrimary : theme.colors.statusCritical 
+                }}>
                   {item.action}
                 </Text>
-                <Text style={[styles.txAmount, { color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }]}>
+                <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.size.sm }}>
                   {item.totalFiat.toFixed(2)} {item.currency}
                 </Text>
               </View>
@@ -140,17 +154,8 @@ const HistoryDialog = ({ visible, onClose }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1 },
-  title: { fontWeight: 'bold' },
-  searchBar: {},
-  sectionHeaderBg: {},
-  sectionHeader: { textTransform: 'uppercase', fontWeight: 'bold' },
-  txRow: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1 },
-  txTicker: { fontWeight: 'bold' },
-  txDate: { marginTop: 2 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   txValues: { alignItems: 'flex-end' },
-  txAction: { fontWeight: 'bold', marginBottom: 2 },
-  txAmount: {},
   emptyText: { textAlign: 'center' }
 });
 
