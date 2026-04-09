@@ -1,4 +1,4 @@
-// src/ui/components/TransactionDialog.js - Refactored (Full-Body)
+// src/ui/components/TransactionDialog.js - Mit Validierung (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
@@ -16,18 +16,47 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
   const [currency, setCurrency] = useState(CURRENCIES.EUR);
   const [funding, setFunding] = useState(FUNDING_SOURCES.EQUITY);
   const [timestamp, setTimestamp] = useState('');
+  
+  // Validierungs-States
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (visible) {
       setTotalFiat(''); setPricePerUnit(''); setAction(ACTIONS.BUY);
+      setErrors({});
       const now = new Date();
       setTimestamp(`${now.getDate().toString().padStart(2, '0')}.${(now.getMonth()+1).toString().padStart(2, '0')}.${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
     }
   }, [visible, ticker]);
 
+  const validate = () => {
+    let newErrors = {};
+    const fiat = parseFloat(totalFiat.replace(',', '.'));
+    const price = parseFloat(pricePerUnit.replace(',', '.'));
+
+    if (isNaN(fiat) || fiat <= 0) newErrors.totalFiat = "Betrag muss größer als 0 sein";
+    if (isNaN(price) || price <= 0) newErrors.pricePerUnit = "Kurs muss größer als 0 sein";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = () => {
+    if (validate()) {
+      onSave(ticker, { 
+        action, 
+        totalFiat: parseFloat(totalFiat.replace(',', '.')), 
+        pricePerUnit: parseFloat(pricePerUnit.replace(',', '.')), 
+        currency, 
+        funding: action === ACTIONS.BUY ? funding : null, 
+        userTimestamp: timestamp 
+      });
+    }
+  };
+
   const footer = (
     <View style={{ gap: theme.layout.standardGap }}>
-      <ThemedButton title="Speichern" onPress={() => onSave(ticker, { action, totalFiat: parseFloat(totalFiat.replace(',', '.')), pricePerUnit: parseFloat(pricePerUnit.replace(',', '.')), currency, funding: action === ACTIONS.BUY ? funding : null, userTimestamp: timestamp })} type={action === ACTIONS.BUY ? 'primary' : 'critical'} />
+      <ThemedButton title="Speichern" onPress={handleSave} type={action === ACTIONS.BUY ? 'primary' : 'critical'} />
       <ThemedButton title="Abbrechen" onPress={onClose} type="secondary" />
     </View>
   );
@@ -52,8 +81,20 @@ const TransactionDialog = ({ visible, onClose, onSave, ticker }) => {
           </View>
         </View>
         <ThemedInput label="Zeitpunkt" value={timestamp} onChangeText={setTimestamp} />
-        <ThemedInput label="Betrag" value={totalFiat} onChangeText={setTotalFiat} keyboardType="decimal-pad" />
-        <ThemedInput label="Kurs" value={pricePerUnit} onChangeText={setPricePerUnit} keyboardType="decimal-pad" />
+        <ThemedInput 
+          label="Betrag" 
+          value={totalFiat} 
+          onChangeText={(val) => { setTotalFiat(val); if(errors.totalFiat) validate(); }} 
+          keyboardType="decimal-pad"
+          errorMessage={errors.totalFiat}
+        />
+        <ThemedInput 
+          label="Kurs" 
+          value={pricePerUnit} 
+          onChangeText={(val) => { setPricePerUnit(val); if(errors.pricePerUnit) validate(); }} 
+          keyboardType="decimal-pad"
+          errorMessage={errors.pricePerUnit}
+        />
       </ScrollView>
     </ThemedDialog>
   );

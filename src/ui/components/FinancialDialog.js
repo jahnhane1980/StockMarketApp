@@ -1,4 +1,4 @@
-// src/ui/components/FinancialDialog.js - Semantic Refactor (Full-Body)
+// src/ui/components/FinancialDialog.js - Mit Validierung (Full-Body)
 
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -13,6 +13,8 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
   const [cInt, setCInt] = useState('0');
   const [debt, setDebt] = useState('0');
   const [dInt, setDInt] = useState('0');
+  
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (visible && initialData) {
@@ -20,16 +22,28 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
       setCInt(initialData.cashInterest.toString());
       setDebt(initialData.debtAmount.toString());
       setDInt(initialData.debtInterest.toString());
+      setErrors({});
     }
   }, [visible, initialData]);
 
+  const validate = () => {
+    let newErrors = {};
+    if (parseFloat(cash.replace(',', '.')) < 0) newErrors.cash = "Bestand kann nicht negativ sein";
+    if (parseFloat(debt.replace(',', '.')) < 0) newErrors.debt = "FK kann nicht negativ sein";
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = () => {
-    onSave({
-      currentCash: parseFloat(cash.replace(',', '.')) || 0,
-      cashInterest: parseFloat(cInt.replace(',', '.')) || 0,
-      debtAmount: parseFloat(debt.replace(',', '.')) || 0,
-      debtInterest: parseFloat(dInt.replace(',', '.')) || 0,
-    });
+    if (validate()) {
+      onSave({
+        currentCash: parseFloat(cash.replace(',', '.')) || 0,
+        cashInterest: parseFloat(cInt.replace(',', '.')) || 0,
+        debtAmount: parseFloat(debt.replace(',', '.')) || 0,
+        debtInterest: parseFloat(dInt.replace(',', '.')) || 0,
+      });
+    }
   };
 
   const footer = (
@@ -42,9 +56,9 @@ const FinancialDialog = ({ visible, onClose, onSave, initialData }) => {
   return (
     <ThemedDialog visible={visible} onClose={onClose} title="Liquidiät & Zinsen" footer={footer}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <ThemedInput label="Cash-Bestand (€)" value={cash} onChangeText={setCash} keyboardType="decimal-pad" />
+        <ThemedInput label="Cash-Bestand (€)" value={cash} onChangeText={setCash} keyboardType="decimal-pad" errorMessage={errors.cash} />
         <ThemedInput label="Habenzins p.a. (%)" value={cInt} onChangeText={setCInt} keyboardType="decimal-pad" />
-        <ThemedInput label="Fremdkapital (€)" value={debt} onChangeText={setDebt} keyboardType="decimal-pad" />
+        <ThemedInput label="Fremdkapital (€)" value={debt} onChangeText={setDebt} keyboardType="decimal-pad" errorMessage={errors.debt} />
         <ThemedInput label="Kreditzins p.a. (%)" value={dInt} onChangeText={setDInt} keyboardType="decimal-pad" />
       </ScrollView>
     </ThemedDialog>
