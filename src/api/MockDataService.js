@@ -1,4 +1,7 @@
-// src/api/MockDataService.js - Integration Stock Radar Daten (Full-Body)
+// src/api/MockDataService.js - Integration JSON Mocks (Full-Body)
+
+import macroMock from '../../mock/GoogleApiResponse.json';
+import radarMock from '../../mock/StockRadarResponse.json';
 
 export class MockDataService {
   async getStockDetails(ticker) {
@@ -13,89 +16,12 @@ export class MockDataService {
   }
 
   async getMacroScore() {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return {
-      "timestamp": new Date().toISOString(),
-      "action_summary": {
-        "total_cash_to_deploy": "80000.00",
-        "global_ui_score": 7.5,
-        "urgency": "HIGH (T1/T2 Strikes aktiv)"
-      },
-      "metrics_validation": {
-        "macro": { "vix_state": "23.87", "real_yield": "1.9%", "gold_stress": "INACTIVE" }
-      },
-      "cycling_navigator": {
-        "current_phase": "ACCUMULATION",
-        "recommendation": "ROTATE_TO_GOLD_AND_VALUE",
-        "logic": "VIX bei 23.87, moderater Makro-Stress."
-      }
-    };
+    await new Promise(resolve => setTimeout(resolve, 800)); // Ladezeit simulieren
+    return macroMock;
   }
 
-  /**
-   * NEU: Liefert die Stock Radar Watchlist
-   */
   async getRadarData() {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return {
-      "monitoring_config": {
-        "active_radar": true,
-        "discovery_mode": "autonomous_market_scan",
-        "quality_threshold": 7,
-        "last_full_scan": "2026-04-09",
-        "earnings_mode": "daily_on_event",
-        "malus_active": "dilution_gt_5_percent",
-        "hallucination_prevention": "forced_source_verification",
-        "timestamp_requirement": "strict_live_data"
-      },
-      "watchlist_results": [
-        {
-          "ticker": "SOFI",
-          "price_usd": 16.44,
-          "match": "CRM (2009)",
-          "core_reason_short": "Scaling Platform Flywheel",
-          "core_reason_long": "Beide Firmen bewiesen in ihrer jeweiligen Ära, dass sie kein teurer Marketing-Hype sind, sondern einen strukturellen Profit-Hebel besitzen. Sobald der GAAP-EPS stabil ist, wechselt die Bewertung von Risiko zu Basis-Investment.",
-          "source": "Nasdaq Real-Time / Investors.sofi.com",
-          "score": 8,
-          "zones": {"interessant": 16.00, "verfuehrerisch": 13.50}
-        },
-        {
-          "ticker": "HIMS",
-          "price_usd": 17.75,
-          "match": "CELH (2021)",
-          "core_reason_short": "Direct-to-Consumer Hyper-Growth",
-          "core_reason_long": "Hims nutzt wie Celsius ein aggressives Abo-Modell. Die operative Hebelwirkung zeigt sich durch massiv sinkende Akquisekosten (CAC) pro Langzeitkunde (LTV).",
-          "score": 7,
-          "zones": {"interessant": 17.50, "verfuehrerisch": 14.50}
-        },
-        {
-          "ticker": "S",
-          "price_usd": 12.40,
-          "match": "CRWD (2019)",
-          "core_reason_short": "AI-Native Pivot to Profit",
-          "core_reason_long": "SentinelOne korreliert fast perfekt mit der Bruttomargen-Struktur von CrowdStrike kurz vor deren Break-Even. Profitabilität durch KI-Automatisierung im Support.",
-          "score": 9,
-          "zones": {"interessant": 13.00, "verfuehrerisch": 11.00}
-        },
-        {
-          "ticker": "NU",
-          "price_usd": 14.47,
-          "match": "MELI (2014)",
-          "core_reason_short": "LatAm Market Dominance",
-          "core_reason_long": "Nu Holdings repliziert die MercadoLibre-Blaupause: Aufbau eines unanfechtbaren Finanz-Ökosystems. Niedrige Refinanzierungskosten und hohe Kundenbindung schaffen Margen-Substanz.",
-          "score": 8,
-          "zones": {"interessant": 13.00, "verfuehrerisch": 11.50}
-        },
-        {
-          "ticker": "SOUN",
-          "price_usd": 6.76,
-          "match": "NVDA (2016)",
-          "core_reason_short": "AI Infrastructure Interface",
-          "core_reason_long": "SoundHound besetzt eine Schlüsselposition als White-Label-KI-Interface. Profitiert von der Notwendigkeit jedes Hardware-Herstellers, eigene Sprach-KIs zu integrieren.",
-          "score": 8,
-          "zones": {"interessant": 6.00, "verfuehrerisch": 4.80}
-        }
-      ]
-    };
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Ladezeit simulieren
+    return radarMock;
   }
 }

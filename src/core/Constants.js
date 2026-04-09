@@ -1,4 +1,4 @@
-// src/core/Constants.js - Vollständige System-Konstanten (Final Clean-up)
+// src/core/Constants.js - Vollständige System-Konfiguration (Full-Body)
 
 export const ASSET_STATUS = {
   WATCH: 'WATCH',
@@ -28,13 +28,11 @@ export const FUNDING_SOURCES = {
   DEBT: 'FK'
 };
 
-// Schwellenwerte für Markt-Scores
 export const MARKET_THRESHOLDS = {
   BULLISH: 7.1,
   NEUTRAL: 3.6
 };
 
-// NEU: Markt-Status Konstanten
 export const MARKET_STATUS = {
   BULLISH: 'BULLISH',
   NEUTRAL: 'NEUTRAL',
@@ -42,8 +40,28 @@ export const MARKET_STATUS = {
   UNKNOWN: 'UNKNOWN'
 };
 
-// NEU: Metrik-Zustände aus der API
+// NEU: Metrik-Zustände für die UI-Logik (Fix für TypeError im AssetPresenter)
 export const METRIC_STATES = {
   INACTIVE: 'INACTIVE',
   ACTIVE: 'ACTIVE'
+};
+
+// Cache-Dauer für die KI-Analyse (4 Stunden)
+export const MACRO_CACHE_DURATION = 4 * 60 * 60 * 1000;
+
+// Hintergrund-Worker Konfigurationen
+const SHARED_WORKER_CONFIG = {
+  TASK_NAME: 'MARKET_SCAN_TASK',
+};
+
+export const PRODUCTION_WORKER_CONFIG = {
+  ...SHARED_WORKER_CONFIG,
+  SCAN_TIMES: ['15:35', '20:15', '21:45'], 
+  FETCH_INTERVAL: 60 * 15 // 15 Minuten
+};
+
+export const TEST_WORKER_CONFIG = {
+  ...SHARED_WORKER_CONFIG,
+  SCAN_TIMES: [], 
+  FETCH_INTERVAL: 60 // 1 Minute
 };

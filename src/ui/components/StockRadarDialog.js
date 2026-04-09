@@ -13,10 +13,8 @@ const StockRadarDialog = ({ visible, onClose, radarData, onAddAsset, initialTick
   const scrollRef = useRef(null);
   const itemPositions = useRef({});
 
-  // FIX: Scrollen zum Ziel-Ticker beim Öffnen
   useEffect(() => {
     if (visible && initialTicker) {
-      // Kleiner Timeout um sicherzustellen, dass die Layout-Berechnung durch ist
       const timer = setTimeout(() => {
         const yPos = itemPositions.current[initialTicker];
         if (yPos !== undefined) {
@@ -55,7 +53,6 @@ const StockRadarDialog = ({ visible, onClose, radarData, onAddAsset, initialTick
     return (
       <View 
         style={dynamicStyles.card}
-        // FIX: Position der Karte speichern
         onLayout={(e) => {
           itemPositions.current[item.ticker] = e.nativeEvent.layout.y;
         }}
@@ -84,15 +81,24 @@ const StockRadarDialog = ({ visible, onClose, radarData, onAddAsset, initialTick
         <View style={dynamicStyles.zoneContainer}>
           <View>
             <Text style={dynamicStyles.zoneLabel}>Interessant</Text>
-            <Text style={[dynamicStyles.zoneValue, { color: theme.colors.text }]}>{item.zones.interessant.toFixed(2)} $</Text>
+            {/* FIX: Sicherheitsprüfung für .toFixed() */}
+            <Text style={[dynamicStyles.zoneValue, { color: theme.colors.text }]}>
+              {item.zones?.interessant ? item.zones.interessant.toFixed(2) : '---'} $
+            </Text>
           </View>
           <View>
             <Text style={dynamicStyles.zoneLabel}>Verführerisch</Text>
-            <Text style={[dynamicStyles.zoneValue, { color: theme.colors.success }]}>{item.zones.verfuehrerisch.toFixed(2)} $</Text>
+            {/* FIX: Sicherheitsprüfung für .toFixed() */}
+            <Text style={[dynamicStyles.zoneValue, { color: theme.colors.success }]}>
+              {item.zones?.verfuehrerisch ? item.zones.verfuehrerisch.toFixed(2) : '---'} $
+            </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={dynamicStyles.zoneLabel}>Aktuell</Text>
-            <Text style={[dynamicStyles.zoneValue, { color: theme.colors.text, fontWeight: theme.typography.weight.bold }]}>{item.price_usd.toFixed(2)} $</Text>
+            {/* FIX: Sicherheitsprüfung für .toFixed() */}
+            <Text style={[dynamicStyles.zoneValue, { color: theme.colors.text, fontWeight: theme.typography.weight.bold }]}>
+              {item.price_usd ? item.price_usd.toFixed(2) : '---'} $
+            </Text>
           </View>
         </View>
       </View>
@@ -108,7 +114,7 @@ const StockRadarDialog = ({ visible, onClose, radarData, onAddAsset, initialTick
     >
       <View style={{ maxHeight: 450 }}> 
         <ScrollView 
-          ref={scrollRef} // Referenz für das Scroll-Target
+          ref={scrollRef}
           showsVerticalScrollIndicator={false} 
           contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
         >
@@ -123,7 +129,7 @@ const StockRadarDialog = ({ visible, onClose, radarData, onAddAsset, initialTick
           {!radarData ? (
             <Text style={{ color: theme.colors.text, textAlign: 'center', marginTop: theme.spacing.lg }}>Lade Radar-Daten...</Text>
           ) : (
-            radarData.watchlist_results.map((item, idx) => (
+            radarData.watchlist_results.map((item) => (
               <RadarItem key={item.ticker} item={item} />
             ))
           )}

@@ -1,31 +1,44 @@
-// src/store/RadarRepository.js - Verwaltung der Radar-Daten
+// src/store/RadarRepository.js - Dynamischer Cache Key (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 import { DataServiceFactory } from '../api/DataService';
+import { Config } from '../core/Config';
 
-const CACHE_KEY = '@radar_cache_v1';
+// NEU: Dynamischer Cache-Key für den Radar
+const getCacheKey = () => Config.TEST ? '@radar_cache_test_v1' : '@radar_cache_live_v1';
+const CACHE_TTL = 4 * 60 * 60 * 1000; // 4 Stunden Cache
+const storage = StorageServiceFactory.getService();
 
 export class RadarRepository {
   static async getData() {
-    const storage = StorageServiceFactory.getService();
-    const dataService = DataServiceFactory.getService();
-
     try {
-      // 1. Cache prüfen
-      const cached = await storage.getItem(CACHE_KEY);
+      const currentKey = getCacheKey();
+      const cached = await storage.getItem(currentKey);
       
-      // 2. Frische Daten holen
-      const remoteData = await dataService.getRadarData();
-      
-      if (remoteData) {
-        await storage.setItem(CACHE_KEY, JSON.stringify(remoteData));
-        return remoteData;
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const age = Date.now() - parsed.timestamp;
+        
+        if (age < CACHE_TTL) {
+          return parsed.data;
+        }
       }
+
+      const apiService = DataServiceFactory.getService();
+      const data = await apiService.getRadarData();
       
-      return cached ? JSON.parse(cached) : null;
+      await storage.setItem(currentKey, JSON.stringify({ timestamp: Date.now(), data }));
+      return data;
+      
     } catch (error) {
-      if (global.log) global.log.error("RadarRepository: Fehler", error);
+      if (global.log) global.log.error("RadarRepository Fehler", error);
       return null;
     }
+  }
+
+  static async clearCache() {
+    const currentKey = getCacheKey();
+    await storage.removeItem(currentKey);
+    if (global.log) global.log.info(`RadarRepository: Cache gelöscht [${currentKey}]`);
   }
 }

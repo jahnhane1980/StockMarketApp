@@ -1,0 +1,68 @@
+[
+  {
+    "ticker": "AAPL",
+    "status": "OWNED",
+    "type": "B",
+    "transactions": [
+      {
+        "id": "tx_aapl_1",
+        "action": "Kauf",
+        "totalFiat": 3000,
+        "pricePerUnit": 150,
+        "currency": "EUR",
+        "funding": "EK",
+        "recordedAt": "2026-01-15T10:30:00Z",
+        "userTimestamp": "15.01.2026 10:30"
+      }
+    ]
+  },
+  {
+    "ticker": "TSLA",
+    "status": "OWNED",
+    "type": "E",
+    "transactions": [
+      {
+        "id": "tx_tsla_1",
+        "action": "Kauf",
+        "totalFiat": 2000,
+        "pricePerUnit": 200,
+        "currency": "EUR",
+        "funding": "EK",
+        "recordedAt": "2026-03-01T09:15:00Z",
+        "userTimestamp": "01.03.2026 09:15"
+      },
+      {
+        "id": "tx_tsla_2",
+        "action": "Verkauf",
+        "totalFiat": 1000,
+        "pricePerUnit": 250,
+        "currency": "EUR",
+        "recordedAt": "2026-04-01T16:45:00Z",
+        "userTimestamp": "01.04.2026 16:45"
+      }
+    ]
+  },
+  {
+    "ticker": "BTC",
+    "status": "OWNED",
+    "type": "C",
+    "transactions": [
+      {
+        "id": "tx_btc_1",
+        "action": "Kauf",
+        "totalFiat": 5000,
+        "pricePerUnit": 40000,
+        "currency": "EUR",
+        "funding": "EK",
+        "recordedAt": "2025-11-20T14:00:00Z",
+        "userTimestamp": "20.11.2025 14:00"
+      }
+    ]
+  },
+  {
+    "ticker": "PLTR",
+    "status": "WATCH",
+    "type": "A",
+    "transactions": []
+  }
+]
