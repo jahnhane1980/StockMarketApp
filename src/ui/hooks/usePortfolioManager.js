@@ -1,4 +1,4 @@
-// src/ui/hooks/usePortfolioManager.js - Zentrales Management (Full-Body Sync)
+// src/ui/hooks/usePortfolioManager.js - Zentrales Management (Full-Body Sync & Logger Fix)
 
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
@@ -50,7 +50,10 @@ export const usePortfolioManager = () => {
         setMacroData(status);
         setFinData(finance);
       } catch (e) {
-        if (global.log) log.error("usePortfolioManager: Init Fehler", e);
+        // Fix: Sicherer Zugriff auf den globalen Logger
+        if (global.log) {
+          global.log.error("usePortfolioManager: Initialisierungsfehler", e);
+        }
       }
     }
     loadInitialData();
@@ -62,27 +65,43 @@ export const usePortfolioManager = () => {
   };
 
   const handleSaveAsset = async (asset) => {
-    await AssetRepository.save(asset);
-    await refreshAssets();
-    toggleDialog('addAsset', false);
+    try {
+      await AssetRepository.save(asset);
+      await refreshAssets();
+      toggleDialog('addAsset', false);
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Fehler beim Speichern des Assets", e);
+    }
   };
 
   const handleSaveTransaction = async (ticker, data) => {
-    await AssetRepository.addTransaction(ticker, data);
-    await refreshAssets();
-    toggleDialog('transaction', false);
+    try {
+      await AssetRepository.addTransaction(ticker, data);
+      await refreshAssets();
+      toggleDialog('transaction', false);
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Fehler beim Speichern der Transaktion", e);
+    }
   };
 
   const handleUpdateFinance = async (newData) => {
-    await FinancialRepository.saveData(newData);
-    setFinData(newData);
-    toggleDialog('finance', false);
+    try {
+      await FinancialRepository.saveData(newData);
+      setFinData(newData);
+      toggleDialog('finance', false);
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Fehler beim Update der Finanzen", e);
+    }
   };
 
   const handleUpdateSettings = async (newSet) => {
-    await SettingsRepository.saveSettings(newSet);
-    setSettings(newSet);
-    toggleDialog('settings', false);
+    try {
+      await SettingsRepository.saveSettings(newSet);
+      setSettings(newSet);
+      toggleDialog('settings', false);
+    } catch (e) {
+      if (global.log) global.log.error("usePortfolioManager: Fehler beim Update der Einstellungen", e);
+    }
   };
 
   return {

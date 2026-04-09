@@ -1,4 +1,4 @@
-// src/ui/MainView.js - Presenter Integration (Full-Body)
+// src/ui/MainView.js - Presenter Integration (Full-Body Fix)
 
 import React, { useRef, useEffect } from 'react';
 import { StatusBar, StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, UIManager, Animated } from 'react-native';
@@ -8,7 +8,7 @@ import { DarkTheme, LightTheme } from '../theme/Theme';
 import { ThemeContext } from '../theme/ThemeContext';
 import { usePortfolioManager } from './hooks/usePortfolioManager';
 import { AssetRepository } from '../store/AssetRepository';
-import { AssetPresenter } from './presenters/AssetPresenter'; // Neu
+import { AssetPresenter } from './presenters/AssetPresenter'; 
 
 // Dialoge & Komponenten
 import SettingsDialog from './components/SettingsDialog';
@@ -68,30 +68,33 @@ export default function MainView() {
         <SafeAreaView style={dynamicStyles.container}>
           <StatusBar barStyle={currentTheme.dark ? "light-content" : "dark-content"} backgroundColor={currentTheme.colors.background} />
 
+          {/* Header Bar */}
           <View style={dynamicStyles.toolbar}>
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: currentTheme.spacing.sm }} onPress={() => actions.toggleDialog('macro', true)}>
-              {/* Nutzung des Presenter-Models (marketVm.color) */}
               <Animated.View style={[{ width: 12, height: 12, borderRadius: 6, backgroundColor: marketVm.color }, { transform: [{ scale: pulseAnim }] }]} />
               <Text style={{ color: currentTheme.colors.text, fontSize: currentTheme.typography.size.subheading, fontWeight: currentTheme.typography.weight.medium }}>Market</Text>
             </TouchableOpacity>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: currentTheme.spacing.sm }}>
+            <div style={{ flexDirection: 'row', alignItems: 'center', gap: currentTheme.spacing.sm }}>
               <TouchableOpacity onPress={() => actions.toggleDialog('history', true)} style={{ padding: 8 }}>
                 {fontsLoaded && <Ionicons name="receipt-outline" size={currentTheme.layout.icon.md} color={currentTheme.colors.text} />}
               </TouchableOpacity>
               <TouchableOpacity onPress={() => actions.toggleDialog('settings', true)} style={{ padding: 8 }}>
                 {fontsLoaded && <Ionicons name="settings-outline" size={currentTheme.layout.icon.md} color={currentTheme.colors.text} />}
               </TouchableOpacity>
-            </View>
+            </div>
           </View>
 
+          {/* Main List */}
           <ScrollView contentContainerStyle={{ padding: currentTheme.spacing.md }}>
             <View style={dynamicStyles.finRow}>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: currentTheme.colors.textSubtle, fontSize: theme.typography.size.caption, textTransform: 'uppercase', fontWeight: currentTheme.typography.weight.bold }}>Available Cash</Text>
+                {/* FIX: theme -> currentTheme */}
+                <Text style={{ color: currentTheme.colors.textSubtle, fontSize: currentTheme.typography.size.caption, textTransform: 'uppercase', fontWeight: currentTheme.typography.weight.bold }}>Available Cash</Text>
                 <Text style={{ color: currentTheme.colors.text, fontSize: currentTheme.typography.size.body, fontWeight: currentTheme.typography.weight.bold }}>{finData.currentCash.toLocaleString()} €</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: currentTheme.colors.textSubtle, fontSize: theme.typography.size.caption, textTransform: 'uppercase', fontWeight: currentTheme.typography.weight.bold }}>Debt Capital</Text>
+                {/* FIX: theme -> currentTheme */}
+                <Text style={{ color: currentTheme.colors.textSubtle, fontSize: currentTheme.typography.size.caption, textTransform: 'uppercase', fontWeight: currentTheme.typography.weight.bold }}>Debt Capital</Text>
                 <Text style={[{ color: currentTheme.colors.text, fontSize: currentTheme.typography.size.body, fontWeight: currentTheme.typography.weight.bold }, finData.debtAmount > 0 && { color: currentTheme.colors.error }]}>{finData.debtAmount.toLocaleString()} €</Text>
               </View>
               <TouchableOpacity onPress={() => actions.toggleDialog('finance', true)}>
@@ -102,7 +105,7 @@ export default function MainView() {
             {assets.map(asset => (
               <StockItem 
                 key={asset.ticker} 
-                asset={asset} // Jetzt wird das ganze Objekt übergeben
+                asset={asset}
                 price="..." 
                 changePercent="..." 
                 trend="up" 
@@ -118,6 +121,7 @@ export default function MainView() {
             {fontsLoaded && <Ionicons name="add" size={currentTheme.layout.icon.lg} color={currentTheme.colors.onPrimary} />}
           </TouchableOpacity>
 
+          {/* Dialogs */}
           <SettingsDialog visible={dialogs.settings} currentSettings={settings} onClose={() => actions.toggleDialog('settings', false)} onSave={actions.handleUpdateSettings} />
           <AddAssetDialog visible={dialogs.addAsset} initialAsset={state.editingAsset} onClose={() => actions.toggleDialog('addAsset', false)} onSave={actions.handleSaveAsset} />
           <TransactionDialog visible={dialogs.transaction} ticker={state.activeTicker} onClose={() => actions.toggleDialog('transaction', false)} onSave={actions.handleSaveTransaction} />
