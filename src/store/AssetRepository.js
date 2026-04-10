@@ -5,7 +5,6 @@ import { ACTIONS } from '../core/Constants';
 import { Config } from '../core/Config';
 import initialPortfolioMock from '../../mock/InitialPortfolio.json';
 
-// NEU: Dynamische Storage Keys
 const getStorageKey = () => Config.TEST ? '@assets_v1_test' : '@assets_v1_live';
 const getArchiveKey = () => Config.TEST ? '@assets_archived_v1_test' : '@assets_archived_v1_live';
 
@@ -88,9 +87,15 @@ export class AssetRepository {
   }
 
   static async getArchived() {
-    const storage = StorageServiceFactory.getService();
-    const currentArchiveKey = getArchiveKey();
-    const data = await storage.getItem(currentArchiveKey);
-    return data ? JSON.parse(data) : [];
+    // FIX: Try-Catch Block hinzugefügt, damit defekte Archive oder fehlende Daten die App nicht crashen
+    try {
+      const storage = StorageServiceFactory.getService();
+      const currentArchiveKey = getArchiveKey();
+      const data = await storage.getItem(currentArchiveKey);
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      if (global.log) global.log.error("AssetRepository: Fehler beim Laden des Archivs", error);
+      return [];
+    }
   }
 }

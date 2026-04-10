@@ -1,4 +1,4 @@
-// src/api/LogService.js - Manueller Versand & Robustheit (Full-Body)
+// src/api/LogService.js - Manueller Versand & Dynamic Attachments (Full-Body)
 
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MailComposer from 'expo-mail-composer';
@@ -12,7 +12,6 @@ export const LogService = {
     try {
       const timestamp = new Date().toISOString();
       const entry = `[${timestamp}] ${message}\n`;
-      // 'append: true' stellt sicher, dass nichts überschrieben wird
       await FileSystem.writeAsStringAsync(LOG_FILE_PATH, entry, { append: true });
     } catch (error) {
       console.error("LogService Error:", error);
@@ -20,7 +19,7 @@ export const LogService = {
   },
 
   /**
-   * Manueller Versand des aktuellen Logs (ohne Löschen)
+   * Manueller Versand des aktuellen Logs inkl. aller JSON-Dumps (ohne Löschen)
    */
   sendCurrentLog: async () => {
     try {
@@ -30,13 +29,24 @@ export const LogService = {
         return;
       }
 
+      // NEU: Dynamisches Sammeln der Attachments
+      const attachments = [LOG_FILE_PATH];
+      try {
+        const dirFiles = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
+        // Filtere nach Dateien, die wir im Trading212Service erstellt haben
+        const jsonFiles = dirFiles.filter(f => f.startsWith('t212_') && f.endsWith('.json'));
+        jsonFiles.forEach(f => attachments.push(`${FileSystem.documentDirectory}${f}`));
+      } catch (fsError) {
+        console.error("LogService: Fehler beim Sammeln der JSON-Dateien", fsError);
+      }
+
       const isAvailable = await MailComposer.isAvailableAsync();
       if (isAvailable) {
         await MailComposer.composeAsync({
           recipients: [Config.ADMIN_EMAIL],
           subject: `StockAnalyser Support-Log`,
-          body: "Manuell angeforderter Log-Bericht zur Fehleranalyse.",
-          attachments: [LOG_FILE_PATH],
+          body: `Manuell angeforderter Log-Bericht zur Fehleranalyse.\nAngehängte Dateien: ${attachments.length}`,
+          attachments: attachments, // Array mit Log + allen gefundenen JSONs
         });
       } else {
         Alert.alert("Fehler", "Keine E-Mail-App konfiguriert.");
@@ -53,20 +63,27 @@ export const LogService = {
 
       const content = await FileSystem.readAsStringAsync(LOG_FILE_PATH);
       
-      // Nur senden, wenn wirklich ein Fehler vorliegt
       if (content.includes('ERROR') || content.includes('WARN')) {
         const isAvailable = await MailComposer.isAvailableAsync();
         if (isAvailable) {
+          
+          // Für Auto-Reports sammeln wir sicherheitshalber auch die JSONs ein
+          const attachments = [LOG_FILE_PATH];
+          try {
+            const dirFiles = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
+            const jsonFiles = dirFiles.filter(f => f.startsWith('t212_') && f.endsWith('.json'));
+            jsonFiles.forEach(f => attachments.push(`${FileSystem.documentDirectory}${f}`));
+          } catch (e) {}
+
           await MailComposer.composeAsync({
             recipients: [Config.ADMIN_EMAIL],
             subject: `StockAnalyser Auto-Report`,
             body: "Die App hat Fehler in der letzten Sitzung erkannt.",
-            attachments: [LOG_FILE_PATH],
+            attachments: attachments,
           });
         }
       }
-      // Erst nach der Prüfung löschen
-      await FileSystem.deleteAsync(LOG_FILE_PATH, { immigrant: true });
+      await FileSystem.deleteAsync(LOG_FILE_PATH, { idempotent: true });
     } catch (error) {
       console.error("LogService Session Cleanup Error:", error);
     }
@@ -74,7 +91,6 @@ export const LogService = {
 
   startNewSession: async () => {
     try {
-      // Falls die Datei noch existiert (z.B. kein Fehler beim letzten Mal), jetzt löschen
       const fileInfo = await FileSystem.getInfoAsync(LOG_FILE_PATH);
       if (fileInfo.exists) await FileSystem.deleteAsync(LOG_FILE_PATH);
       

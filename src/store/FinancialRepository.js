@@ -1,11 +1,7 @@
-// src/store/FinancialRepository.js - Sandbox vs. Live Storage Integration (Full-Body)
+// src/store/FinancialRepository.js - Dynamische Storage-Instanz (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 import { Config } from '../core/Config';
-
-// NEU: Dynamischer Storage Key
-const getStorageKey = () => Config.TEST ? '@financial_v1_test' : '@financial_v1_live';
-const storage = StorageServiceFactory.getService();
 
 const LIVE_DEFAULT = {
   currentCash: 0,
@@ -23,7 +19,9 @@ const TEST_DEFAULT = {
 
 export class FinancialRepository {
   static async getData() {
-    const currentKey = getStorageKey();
+    // NEU: Initialisierung MUSS innerhalb der Methode erfolgen, damit Config.TEST aktuell ist!
+    const storage = StorageServiceFactory.getService();
+    const currentKey = Config.TEST ? '@financial_v1_test' : '@financial_v1_live';
     const defaults = Config.TEST ? TEST_DEFAULT : LIVE_DEFAULT;
     
     try {
@@ -35,7 +33,10 @@ export class FinancialRepository {
   }
 
   static async saveData(newData) {
-    const currentKey = getStorageKey();
+    // NEU: Hier ebenfalls dynamisch abrufen
+    const storage = StorageServiceFactory.getService();
+    const currentKey = Config.TEST ? '@financial_v1_test' : '@financial_v1_live';
+    
     try {
       await storage.setItem(currentKey, JSON.stringify(newData));
       return newData;
