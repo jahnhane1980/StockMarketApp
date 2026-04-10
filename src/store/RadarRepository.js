@@ -1,14 +1,9 @@
 // src/store/RadarRepository.js - Fix: Dynamischer Cache Key + Laufzeit-Storage (Full-Body)
 
-import { StorageServiceFactory } from './StorageService';
+import { StorageServiceFactory, STORAGE_KEYS } from './StorageService';
 import { DataServiceFactory } from '../api/DataService';
 import { Config } from '../core/Config';
-
-// Dynamischer Cache-Key für den Radar
-const getCacheKey = () => Config.TEST ? '@radar_cache_test_v1' : '@radar_cache_live_v1';
-const CACHE_TTL = 4 * 60 * 60 * 1000; // 4 Stunden Cache
-
-// FIX: Globaler storage-Aufruf entfernt, da Factory beim App-Start noch undefined sein kann.
+import { RADAR_CACHE_DURATION } from '../core/Constants'; // NEU: Konstante importiert
 
 export class RadarRepository {
   static async getData() {
@@ -16,14 +11,14 @@ export class RadarRepository {
     const storage = StorageServiceFactory.getService();
     
     try {
-      const currentKey = getCacheKey();
+      const currentKey = STORAGE_KEYS.radarCache();
       const cached = await storage.getItem(currentKey);
       
       if (cached) {
         const parsed = JSON.parse(cached);
         const age = Date.now() - parsed.timestamp;
         
-        if (age < CACHE_TTL) {
+        if (age < RADAR_CACHE_DURATION) { // NEU: Nutzung der zentralen Konstante
           return parsed.data;
         }
       }
@@ -44,7 +39,7 @@ export class RadarRepository {
     // FIX: Initialisierung sicher zur Laufzeit
     const storage = StorageServiceFactory.getService();
     
-    const currentKey = getCacheKey();
+    const currentKey = STORAGE_KEYS.radarCache();
     await storage.removeItem(currentKey);
     if (global.log) global.log.info(`RadarRepository: Cache gelöscht [${currentKey}]`);
   }

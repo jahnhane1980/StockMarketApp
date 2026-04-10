@@ -1,15 +1,14 @@
 // src/store/Trading212Repository.js - Fix: Error Handling & Test-Modus (Full-Body)
 
-import { StorageServiceFactory } from './StorageService';
+import { StorageServiceFactory, STORAGE_KEYS } from './StorageService';
 import { Trading212Service } from '../api/Trading212Service';
 import { T212_CACHE_DURATION } from '../core/Constants';
 import { Config } from '../core/Config';
 
-const CACHE_KEY = '@t212_portfolio_cache';
-
 export class Trading212Repository {
   static async getPortfolioData(forceRefresh = false) {
     const storage = StorageServiceFactory.getService();
+    const cacheKey = STORAGE_KEYS.t212Cache(); // NEU: Nutzung der zentralen Key-Registry
 
     try {
       if (Config.TEST) {
@@ -23,7 +22,7 @@ export class Trading212Repository {
       }
 
       if (!forceRefresh) {
-        const cached = await storage.getItem(CACHE_KEY);
+        const cached = await storage.getItem(cacheKey);
         if (cached) {
           const { timestamp, data } = JSON.parse(cached);
           const age = Date.now() - timestamp;
@@ -43,7 +42,7 @@ export class Trading212Repository {
 
       const combinedData = { cash, portfolio };
 
-      await storage.setItem(CACHE_KEY, JSON.stringify({
+      await storage.setItem(cacheKey, JSON.stringify({
         timestamp: Date.now(),
         data: combinedData
       }));
@@ -57,7 +56,8 @@ export class Trading212Repository {
 
   static async clearCache() {
     const storage = StorageServiceFactory.getService();
-    await storage.removeItem(CACHE_KEY);
+    const cacheKey = STORAGE_KEYS.t212Cache(); // NEU
+    await storage.removeItem(cacheKey);
     if (global.log) global.log.info("T212Repository: Cache manuell gelöscht.");
   }
 }

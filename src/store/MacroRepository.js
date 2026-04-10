@@ -1,20 +1,17 @@
 // src/store/MacroRepository.js - Dynamischer Cache Key + V34 Payload (Full-Body)
 
-import { StorageServiceFactory } from './StorageService';
+import { StorageServiceFactory, STORAGE_KEYS } from './StorageService';
 import { DataServiceFactory } from '../api/DataService';
 import { AssetRepository } from './AssetRepository';
 import { FinancialRepository } from './FinancialRepository';
 import { MACRO_CACHE_DURATION } from '../core/Constants';
 import { Config } from '../core/Config';
 
-// NEU: Dynamischer Cache-Key, damit Live- und Mock-Caches sich nicht überschreiben
-const getCacheKey = () => Config.TEST ? '@macro_status_cache_test_v2' : '@macro_status_cache_live_v2';
-
 export class MacroRepository {
   static async getStatus() {
     const storage = StorageServiceFactory.getService();
     const dataService = DataServiceFactory.getService();
-    const currentKey = getCacheKey(); // Ermitteln, ob Test- oder Live-Cache
+    const currentKey = STORAGE_KEYS.macroCache(); // NEU: Nutzung der zentralen Key-Registry
 
     try {
       // 1. Lokalen Cache prüfen
@@ -79,7 +76,7 @@ export class MacroRepository {
 
   static async clearCache() {
     const storage = StorageServiceFactory.getService();
-    const currentKey = getCacheKey();
+    const currentKey = STORAGE_KEYS.macroCache(); // NEU
     await storage.removeItem(currentKey);
     if (global.log) global.log.info(`MacroRepository: Cache manuell gelöscht [${currentKey}].`);
   }
