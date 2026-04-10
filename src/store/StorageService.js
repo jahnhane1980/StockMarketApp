@@ -1,7 +1,7 @@
 // src/store/StorageService.js - Base Storage Adapter & Factory (Full-Body Sync)
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Config } from '../core/Config'; // Korrigierter Pfad
+import { Config } from '../core/Config';
 
 class AsyncStorageAdapter {
   async getItem(key) {
@@ -31,13 +31,20 @@ class MockStorageAdapter {
 }
 
 export class StorageServiceFactory {
+  // NEU: Explizite statische Variable für saubere Referenz im RAM
+  static mockInstance = null;
+
   static getService() {
     if (Config.TEST) {
-      if (!this.mockInstance) {
-        this.mockInstance = new MockStorageAdapter();
+      if (!StorageServiceFactory.mockInstance) {
+        StorageServiceFactory.mockInstance = new MockStorageAdapter();
       }
-      return this.mockInstance;
+      return StorageServiceFactory.mockInstance;
     }
+    return new AsyncStorageAdapter();
+  }
+
+  static getPersistentService() {
     return new AsyncStorageAdapter();
   }
 }

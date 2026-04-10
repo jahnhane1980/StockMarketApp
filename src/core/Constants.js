@@ -40,14 +40,15 @@ export const MARKET_STATUS = {
   UNKNOWN: 'UNKNOWN'
 };
 
-// NEU: Metrik-Zustände für die UI-Logik (Fix für TypeError im AssetPresenter)
+// Metrik-Zustände für die UI-Logik
 export const METRIC_STATES = {
   INACTIVE: 'INACTIVE',
   ACTIVE: 'ACTIVE'
 };
 
-// Cache-Dauer für die KI-Analyse (4 Stunden)
-export const MACRO_CACHE_DURATION = 4 * 60 * 60 * 1000;
+// Cache-Dauern
+export const MACRO_CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 Stunden
+export const T212_CACHE_DURATION = 1 * 60 * 60 * 1000;  // NEU: 1 Stunde für Trading212 Daten
 
 // Hintergrund-Worker Konfigurationen
 const SHARED_WORKER_CONFIG = {

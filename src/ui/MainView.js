@@ -26,7 +26,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function MainView() {
   const { state, actions } = usePortfolioManager();
-  const { settings, macroData, finData, assets, dialogs, fontsLoaded, radarData, activeTicker, isLoading } = state;
+  // NEU: t212Data aus dem State entpackt
+  const { settings, macroData, finData, assets, dialogs, fontsLoaded, radarData, activeTicker, isLoading, t212Data } = state;
 
   const currentTheme = settings.theme === 'light' ? LightTheme : DarkTheme;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -105,6 +106,12 @@ export default function MainView() {
               <TouchableOpacity onPress={actions.handleForceRefresh} style={styles.refreshBtn}>
                 <Ionicons name="refresh-outline" size={16} color={currentTheme.colors.warning} />
               </TouchableOpacity>
+              
+              {/* NEU: Trading212 Refresh Button */}
+              <TouchableOpacity onPress={actions.handleT212Refresh} style={{ padding: 8 }}>
+                {fontsLoaded && <Ionicons name="wallet-outline" size={currentTheme.layout.icon.md} color={currentTheme.colors.text} />}
+              </TouchableOpacity>
+
               <TouchableOpacity onPress={() => actions.toggleDialog('radar', true)} style={{ padding: 8 }}>
                 {fontsLoaded && <Ionicons name="radio-outline" size={currentTheme.layout.icon.md} color={currentTheme.colors.text} />}
               </TouchableOpacity>
@@ -145,11 +152,9 @@ export default function MainView() {
 
             <Text style={styles.sectionLabel}>Your Portfolio</Text>
             {assets.map(asset => {
-              // NEU: Berechne echte Statistiken aus den Transaktionen
               const stats = AssetRepository.getPositionStats(asset)?.EUR;
               const hasPosition = stats && stats.totalShares > 0;
               
-              // Formatting
               const displayVal = hasPosition ? `${stats.totalFiat.toFixed(2)} €` : "0.00 €";
               const displaySub = hasPosition 
                 ? `${stats.totalShares.toFixed(2)} Units | Ø ${stats.avgPrice.toFixed(2)} €` 
