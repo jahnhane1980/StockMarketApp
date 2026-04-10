@@ -1,4 +1,4 @@
-// src/api/Trading212Service.js - Initiale API Anbindung (Full-Body)
+// src/api/Trading212Service.js - API Kommunikation (Full-Body)
 
 import { Config } from '../core/Config';
 
@@ -13,8 +13,6 @@ export class Trading212Service {
 
     const headers = {
       'Authorization': Config.TRADING212_API.KEY,
-      // Falls das Secret in Zukunft für spezifische Endpunkte im Header benötigt wird:
-      // 'X-Secret': Config.TRADING212_API.SECRET,
     };
 
     if (method !== 'GET' && method !== 'HEAD') {
@@ -43,8 +41,6 @@ export class Trading212Service {
       throw error;
     }
   }
-
-  // --- Endpunkte (Placeholder für die nächsten Schritte) ---
 
   static async getAccountCash() {
     return this.fetchFromAPI('/equity/account/cash', 'GET');

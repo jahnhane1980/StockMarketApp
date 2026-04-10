@@ -1,4 +1,4 @@
-// src/store/Trading212Repository.js - Caching für T212 Live-Daten (Full-Body)
+// src/store/Trading212Repository.js - Fix: Error Handling & Test-Modus (Full-Body)
 
 import { StorageServiceFactory } from './StorageService';
 import { Trading212Service } from '../api/Trading212Service';
@@ -12,7 +12,16 @@ export class Trading212Repository {
     const storage = StorageServiceFactory.getService();
 
     try {
-      // 1. Cache prüfen (falls kein Force Refresh)
+      if (Config.TEST) {
+        if (global.log) global.log.info("T212Repository: Test-Modus aktiv, API übersprungen.");
+        return { cash: null, portfolio: null };
+      }
+
+      if (!Config.TRADING212_API.KEY) {
+        if (global.log) global.log.info("T212Repository: Kein API Key gefunden.");
+        return null;
+      }
+
       if (!forceRefresh) {
         const cached = await storage.getItem(CACHE_KEY);
         if (cached) {
@@ -25,7 +34,6 @@ export class Trading212Repository {
         }
       }
 
-      // 2. Live-Abruf (Account & Portfolio)
       if (global.log) global.log.info("T212Repository: Starte Live-Abruf von Trading212...");
       
       const [cash, portfolio] = await Promise.all([
@@ -35,7 +43,6 @@ export class Trading212Repository {
 
       const combinedData = { cash, portfolio };
 
-      // 3. Speichern im Cache
       await storage.setItem(CACHE_KEY, JSON.stringify({
         timestamp: Date.now(),
         data: combinedData
@@ -44,7 +51,7 @@ export class Trading212Repository {
       return combinedData;
     } catch (error) {
       if (global.log) global.log.error("T212Repository Error:", error.message);
-      throw error;
+      return null;
     }
   }
 
