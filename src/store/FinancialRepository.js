@@ -1,6 +1,6 @@
 // src/store/FinancialRepository.js - Dynamische Storage-Instanz (Full-Body)
 
-import { StorageServiceFactory } from './StorageService';
+import { StorageServiceFactory, STORAGE_KEYS } from './StorageService';
 import { Config } from '../core/Config';
 
 const LIVE_DEFAULT = {
@@ -21,7 +21,7 @@ export class FinancialRepository {
   static async getData() {
     // NEU: Initialisierung MUSS innerhalb der Methode erfolgen, damit Config.TEST aktuell ist!
     const storage = StorageServiceFactory.getService();
-    const currentKey = Config.TEST ? '@financial_v1_test' : '@financial_v1_live';
+    const currentKey = STORAGE_KEYS.financial(); // NEU: Zentrale Key-Registry
     const defaults = Config.TEST ? TEST_DEFAULT : LIVE_DEFAULT;
     
     try {
@@ -35,7 +35,7 @@ export class FinancialRepository {
   static async saveData(newData) {
     // NEU: Hier ebenfalls dynamisch abrufen
     const storage = StorageServiceFactory.getService();
-    const currentKey = Config.TEST ? '@financial_v1_test' : '@financial_v1_live';
+    const currentKey = STORAGE_KEYS.financial(); // NEU
     
     try {
       await storage.setItem(currentKey, JSON.stringify(newData));

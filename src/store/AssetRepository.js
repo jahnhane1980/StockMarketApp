@@ -1,17 +1,14 @@
 // src/store/AssetRepository.js - Sandbox vs. Live Storage Integration (Full-Body)
 
-import { StorageServiceFactory } from './StorageService';
+import { StorageServiceFactory, STORAGE_KEYS } from './StorageService';
 import { ACTIONS } from '../core/Constants';
 import { Config } from '../core/Config';
 import initialPortfolioMock from '../../mock/InitialPortfolio.json';
 
-const getStorageKey = () => Config.TEST ? '@assets_v1_test' : '@assets_v1_live';
-const getArchiveKey = () => Config.TEST ? '@assets_archived_v1_test' : '@assets_archived_v1_live';
-
 export class AssetRepository {
   static async getAll() {
     const storage = StorageServiceFactory.getService();
-    const currentKey = getStorageKey();
+    const currentKey = STORAGE_KEYS.asset(); // NEU: Zentrale Key-Registry
     try {
       const data = await storage.getItem(currentKey);
       if (data) {
@@ -50,7 +47,7 @@ export class AssetRepository {
 
   static async addTransaction(ticker, transactionData) {
     const storage = StorageServiceFactory.getService();
-    const currentKey = getStorageKey();
+    const currentKey = STORAGE_KEYS.asset(); // NEU
     let assets = await this.getAll();
     const assetIndex = assets.findIndex(a => a.ticker === ticker);
     if (assetIndex === -1) return assets;
@@ -65,7 +62,7 @@ export class AssetRepository {
 
   static async save(asset) {
     const storage = StorageServiceFactory.getService();
-    const currentKey = getStorageKey();
+    const currentKey = STORAGE_KEYS.asset(); // NEU
     const assets = await this.getAll();
     const existingIndex = assets.findIndex(a => a.ticker === asset.ticker);
     if (existingIndex >= 0) {
@@ -79,7 +76,7 @@ export class AssetRepository {
 
   static async remove(ticker) {
     const storage = StorageServiceFactory.getService();
-    const currentKey = getStorageKey();
+    const currentKey = STORAGE_KEYS.asset(); // NEU
     let assets = await this.getAll();
     assets = assets.filter(a => a.ticker !== ticker);
     await storage.setItem(currentKey, JSON.stringify(assets));
@@ -90,7 +87,7 @@ export class AssetRepository {
     // FIX: Try-Catch Block hinzugefügt, damit defekte Archive oder fehlende Daten die App nicht crashen
     try {
       const storage = StorageServiceFactory.getService();
-      const currentArchiveKey = getArchiveKey();
+      const currentArchiveKey = STORAGE_KEYS.assetArchive(); // NEU
       const data = await storage.getItem(currentArchiveKey);
       return data ? JSON.parse(data) : [];
     } catch (error) {

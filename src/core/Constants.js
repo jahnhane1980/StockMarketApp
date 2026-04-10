@@ -48,7 +48,8 @@ export const METRIC_STATES = {
 
 // Cache-Dauern
 export const MACRO_CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 Stunden
-export const T212_CACHE_DURATION = 1 * 60 * 60 * 1000;  // NEU: 1 Stunde für Trading212 Daten
+export const T212_CACHE_DURATION = 1 * 60 * 60 * 1000;  // 1 Stunde für Trading212 Daten
+export const RADAR_CACHE_DURATION = 4 * 60 * 60 * 1000; // NEU: 4 Stunden für Radar Daten
 
 // Hintergrund-Worker Konfigurationen
 const SHARED_WORKER_CONFIG = {
