@@ -13,8 +13,34 @@ Snack is Open Source. You can find the code on the [GitHub repo](https://github.
 ---
 
 ## TODO / Roadmap
-
-* **Google API Integration**: Implementierung der echten Prompts und der Logik in `src/api/GoogleApiService.js`, um Live-Marktdaten und Analysen zu erhalten.
-* **Listen-Performance**: Umstellung der Asset-Liste in `MainView.js` von `ScrollView` mit `.map()` auf die `FlatList`-Komponente. Dies reduziert die Speicherlast bei großen Portfolios durch Fenster-Rendering (Windowing).
 * **Business-Logik (Berechnungen)**: Memoisierung der Berechnungen in `AssetRepository.getPositionStats` (z. B. durch einen Selector). Damit wird verhindert, dass die Kalkulationen bei jedem UI-Update unnötig neu ausgeführt werden.
-* **Navigation & Erweiterung**: Einführung einer Navigations-Bibliothek wie **React Navigation**, um von der manuellen Dialog-Steuerung wegzukommen. Dies ist die Voraussetzung für geplante Erweiterungen wie eine dedizierte Analyse-Seite und den **StockRadar**.
+
+## 🛠 Refactoring & Architektur-Roadmap (Geplant)
+
+Die folgenden Punkte wurden zur Verbesserung der Code-Qualität, Performance und Wartbarkeit identifiziert und sollen Schritt für Schritt umgesetzt werden:
+
+### 1. Base API Service (Netzwerk-Schicht)
+* **Ziel:** Zusammenführung der `fetch`-Logik aus `GoogleApiService` und `Trading212Service` in einen zentralen `BaseApiService` (oder `HttpClient`).
+* **Vorteil:** Einheitliches Error-Handling, globale Timeout-Steuerung (`AbortController`), zentrale Retry-Logik (für 429/503 Fehler) und gebündeltes Response-Logging ins FileSystem.
+
+### 2. Utils-Schicht etablieren (Separation of Concerns)
+* **`JsonUtils`:** Extraktion der fehleranfälligen JSON-Sanitizing-Logik (z. B. das Entfernen von Markdown-Backticks via `indexOf('{')`) aus dem `GoogleApiService`. Der API-Service soll nur noch Daten transportieren, nicht mehr parsen.
+* **`PortfolioCalculator` / `MathUtils`:** Auslagerung der Business-Logik (Berechnung von Durchschnittskursen, Gesamtanteilen, Fiat-Werten). Aktuell rechnet das `AssetRepository` in `getPositionStats`. Repositories sollen jedoch ausschließlich für das Speichern/Laden von Daten zuständig sein.
+* **`DateUtils` / `Constants`:** Magische Arrays und redundante Definitionen (wie z. B. die Monatsnamen `["Januar", "Februar", ...]`, die aktuell doppelt in `TransactionTransformer` und `GoogleApiService` liegen) werden zentralisiert.
+
+### 3. Caching-Logik zentralisieren (DRY-Prinzip)
+* **Ziel:** Die redundante Try-Catch- und Timestamp-Prüflogik (Alter des Caches vs. `CACHE_DURATION`) aus `MacroRepository`, `RadarRepository` und `Trading212Repository` entfernen.
+* **Umsetzung:** Eine zentrale Methode wie `getValidCache(key, maxAge)` im `StorageService` oder einem neuen `CacheManager` implementieren.
+
+### 4. UI-Performance & Bugfixes
+* **FlatList-Performance (`PortfolioList.js`):** Der Aufruf von `AssetRepository.getPositionStats(asset)` innerhalb der `renderItem`-Funktion führt bei jedem Scrollen zu Neuberechnungen. Die Stats sollen zukünftig im `useCoreData`-Hook beim `refreshAssets` vorberechnet und als fertige Werte an die UI übergeben werden.
+* **Log-System aktivieren:** Das `global.log` wird aktuell in der Einstiegsdatei (`App.js` / `index.js`) nicht initialisiert, weshalb die Aufrufe `global.log.info(...)` ins Leere laufen. Dies muss im Setup-Hook gebunden werden.
+
+### 5. Ordnerstruktur aufräumen (Komponenten)
+* **Ziel:** Den `src/ui/components`-Ordner strukturieren. 
+* **Umsetzung:** Gruppierung der aktuell über 14 flachen Dateien in logische Unterordner wie `dialogs/`, `cards/` (für StockItem, ErrorBox) und `layout/` (für Toolbar).
+
+---
+
+### ❌ Verworfen: React Navigation
+Die ursprüngliche Idee, *React Navigation* zu integrieren, wurde offiziell gestrichen. Die App funktioniert konzeptionell als slickes **Single-Screen-Dashboard**. Die Steuerung der Overlays über einfache Boolean-Flags im `useUiState`-Hook ist absolut ausreichend, hochperformant und erspart uns unnötigen Library-Overhead.
