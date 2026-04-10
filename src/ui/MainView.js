@@ -19,6 +19,7 @@ import MacroDetailsDialog from './components/MacroDetailsDialog';
 import FinancialDialog from './components/FinancialDialog';
 import StockRadarDialog from './components/StockRadarDialog';
 import ConfirmRefreshDialog from './components/ConfirmRefreshDialog';
+import FinancialDashboard from './components/FinancialDashboard'; // NEU IMPORTIERT
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -38,6 +39,12 @@ export default function MainView() {
   const marketVm = AssetPresenter.getMarketViewModel(marketScore, currentTheme);
   
   const recommendations = radarData?.watchlist_results?.filter(r => r.score >= 8) || [];
+
+  // NEU: Berechnung des gesamten Portfolio-Wertes für das Dashboard
+  const totalPortfolioValue = assets.reduce((sum, asset) => {
+    const stats = AssetRepository.getPositionStats(asset)?.EUR;
+    return sum + (stats?.totalFiat || 0);
+  }, 0) + (finData?.currentCash || 0);
 
   useEffect(() => {
     if (macroData && !macroData.error) {
@@ -147,6 +154,15 @@ export default function MainView() {
                 </View>
               </View>
             )}
+
+            {/* NEU: Financial Dashboard */}
+            <FinancialDashboard 
+              portfolioValue={totalPortfolioValue}
+              currentCash={finData?.currentCash || 0}
+              debtAmount={finData?.debtAmount || 0}
+              onPress={() => actions.toggleDialog('finance', true)}
+              fontsLoaded={fontsLoaded}
+            />
 
             {recommendations.length > 0 && (
               <View style={{ marginBottom: currentTheme.spacing.sm }}>
