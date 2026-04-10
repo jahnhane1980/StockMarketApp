@@ -26,11 +26,13 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function MainView() {
   const { state, actions } = usePortfolioManager();
-  // NEU: t212Data aus dem State entpackt
   const { settings, macroData, finData, assets, dialogs, fontsLoaded, radarData, activeTicker, isLoading, t212Data } = state;
 
   const currentTheme = settings.theme === 'light' ? LightTheme : DarkTheme;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // NEU: Prüfung, ob T212 Credentials existieren
+  const hasT212Credentials = Boolean(settings?.t212Key && settings?.t212Secret);
 
   const marketScore = macroData?.error ? null : macroData?.action_summary?.global_ui_score;
   const marketVm = AssetPresenter.getMarketViewModel(marketScore, currentTheme);
@@ -107,9 +109,19 @@ export default function MainView() {
                 <Ionicons name="refresh-outline" size={16} color={currentTheme.colors.warning} />
               </TouchableOpacity>
               
-              {/* NEU: Trading212 Refresh Button */}
-              <TouchableOpacity onPress={actions.handleT212Refresh} style={{ padding: 8 }}>
-                {fontsLoaded && <Ionicons name="wallet-outline" size={currentTheme.layout.icon.md} color={currentTheme.colors.text} />}
+              {/* UPDATE: Trading212 Refresh Button mit dynamischem Status */}
+              <TouchableOpacity 
+                onPress={actions.handleT212Refresh} 
+                style={{ padding: 8 }}
+                disabled={!hasT212Credentials}
+              >
+                {fontsLoaded && (
+                  <Ionicons 
+                    name="briefcase" // Blockigeres (massives) Icon statt Outline
+                    size={currentTheme.layout.icon.md} 
+                    color={hasT212Credentials ? currentTheme.colors.primary : currentTheme.colors.textSubtle} 
+                  />
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => actions.toggleDialog('radar', true)} style={{ padding: 8 }}>

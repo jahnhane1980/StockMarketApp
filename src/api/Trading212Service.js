@@ -1,6 +1,7 @@
-// src/api/Trading212Service.js - API Kommunikation (Full-Body)
+// src/api/Trading212Service.js - API Kommunikation mit JSON-Logging (Full-Body)
 
 import { Config } from '../core/Config';
+import * as FileSystem from 'expo-file-system/legacy'; // NEU: FileSystem importiert
 
 export class Trading212Service {
   /**
@@ -35,7 +36,21 @@ export class Trading212Service {
         throw new Error(`T212_API_ERROR_${response.status}`);
       }
 
-      return await response.json();
+      const jsonResponse = await response.json();
+
+      // NEU: Rohe API-Antwort lokal als JSON-Datei speichern
+      try {
+        // Wandelt "/equity/account/cash" in "equity_account_cash" um
+        const safeName = endpoint.replace(/[^a-zA-Z0-9]/g, '_').replace(/^_+/, '');
+        const filePath = `${FileSystem.documentDirectory}t212_${safeName}.json`;
+        
+        await FileSystem.writeAsStringAsync(filePath, JSON.stringify(jsonResponse, null, 2));
+        if (global.log) global.log.info(`T212 Response gespeichert unter: t212_${safeName}.json`);
+      } catch (fsError) {
+        if (global.log) global.log.warn(`Konnte T212 JSON nicht speichern: ${fsError.message}`);
+      }
+
+      return jsonResponse;
     } catch (error) {
       if (global.log) global.log.error(`Trading212Service Error [${endpoint}]:`, error);
       throw error;
