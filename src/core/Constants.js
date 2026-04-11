@@ -46,6 +46,9 @@ export const METRIC_STATES = {
   ACTIVE: 'ACTIVE'
 };
 
+// Zeiten & Timeouts (in Millisekunden)
+export const HTTP_DEFAULT_TIMEOUT = 30000; // NEU: 30 Sekunden Standard-Timeout für API Requests
+
 // Cache-Dauern
 export const MACRO_CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 Stunden
 export const T212_CACHE_DURATION = 1 * 60 * 60 * 1000;  // 1 Stunde für Trading212 Daten

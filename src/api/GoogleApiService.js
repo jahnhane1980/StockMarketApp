@@ -1,51 +1,42 @@
 // src/api/GoogleApiService.js - Refactored AI Core & Radar Prompt (Full-Body)
 
 import { Config } from '../core/Config';
+import { HttpClient } from './HttpClient';
 import { SYSTEM_PROMPT as MACRO_PROMPT } from '../assets/prompt_stock_analyser';
-import { RADAR_SYSTEM_PROMPT } from '../assets/prompt_stock_radar'; // NEU IMPORTIERT
+import { RADAR_SYSTEM_PROMPT } from '../assets/prompt_stock_radar'; 
 
 export class GoogleApiService {
-  async _callAi(prompt, inputData, retryCount = 0) {
+  async _callAi(prompt, inputData) {
     if (!Config.GOOGLE_API.KEY) {
       throw new Error("API_KEY_MISSING");
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90000);
+    const payload = {
+      contents: [{
+        parts: [{ text: `${prompt}\n\nINPUT_DATA: ${JSON.stringify(inputData)}` }]
+      }],
+      generationConfig: { response_mime_type: "application/json", temperature: 0.1 }
+    };
 
     try {
-      const payload = {
-        contents: [{
-          parts: [{ text: `${prompt}\n\nINPUT_DATA: ${JSON.stringify(inputData)}` }]
-        }],
-        generationConfig: { response_mime_type: "application/json", temperature: 0.1 }
-      };
+      if (global.log) global.log.info("GoogleApiService: Sende Request an Gemini API...");
 
-      const response = await fetch(Config.GOOGLE_API.URL, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-goog-api-key': Config.GOOGLE_API.KEY 
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal
+      // HttpClient übernimmt Fetch, Timeout und Retries!
+      // Wir überschreiben das Default-Timeout mit deinen 90s und übergeben den Auth-Header.
+      const response = await HttpClient.post(Config.GOOGLE_API.URL, payload, { 
+        retries: 2,
+        timeout: 90000, 
+        headers: {
+          'x-goog-api-key': Config.GOOGLE_API.KEY
+        }
       });
-
-      clearTimeout(timeoutId);
-
-      if ((response.status === 503 || response.status === 429) && retryCount < 2) {
-        const delay = response.status === 429 ? 5000 : 3000; 
-        if (global.log) global.log.warn(`API Status ${response.status}: Retry ${retryCount + 1} nach ${delay}ms`);
-        await new Promise(res => setTimeout(res, delay));
-        return this._callAi(prompt, inputData, retryCount + 1);
-      }
-
-      if (!response.ok) throw new Error(`SERVER_ERROR_${response.status}`);
 
       const json = await response.json();
       const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+      
       if (!rawText) throw new Error("INVALID_AI_RESPONSE");
 
+      // JSON Sanitizing: Workaround für Markdown-Backticks der KI
       const firstBrace = rawText.indexOf('{');
       const lastBrace = rawText.lastIndexOf('}');
       
@@ -57,10 +48,17 @@ export class GoogleApiService {
       return JSON.parse(cleanJson);
       
     } catch (error) {
-      clearTimeout(timeoutId);
+      // Spezifisches Error-Handling für den AbortError (Timeout) beibehalten
       if (error.name === 'AbortError') {
         throw new Error("TIMEOUT: KI-Anfrage überschritt 90s.");
       }
+      
+      // NEU: Fange die HTTP-Fehler vom HttpClient ab und mappe sie auf dein altes Format
+      if (error.status) {
+        throw new Error(`SERVER_ERROR_${error.status}`);
+      }
+      
+      if (global.log) global.log.error("GoogleApiService: Fehler bei der KI-Analyse", error);
       throw error;
     }
   }
@@ -69,7 +67,6 @@ export class GoogleApiService {
     return this._callAi(MACRO_PROMPT, inputData);
   }
 
-  // NEU: Dynamische Prompt-Injektion für den Radar
   async getRadarData() {
     const now = new Date();
     const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
@@ -92,10 +89,9 @@ export class GoogleApiService {
     return this._callAi(dynamicPrompt, { mode: 'autonomous_scan' });
   }
 
-/**
- * Das ist aktuell ein reiner Platzhalter (Stub). Wir haben sie beim initialen API-Design mit angelegt für den *  Fall, dass du später mal in der MainView auf eine einzelne Aktie (z. B. "AAPL") klickst und sich dann ein 
- * Dialog mit einem exakten KI-Deep-Dive nur für diesen einen Ticker öffnet.
- */
+  /**
+   * Das ist aktuell ein reiner Platzhalter (Stub).
+   */
   async getStockDetails(ticker) {
     return { ticker, price: "0.00", logic_notes: ["Live-Analyse V34.0 aktiv."] };
   }

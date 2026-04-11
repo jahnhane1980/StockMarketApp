@@ -16,9 +16,6 @@ Snack is Open Source. You can find the code on the [GitHub repo](https://github.
 
 Die folgenden Punkte wurden zur Verbesserung der Code-Qualität, Performance und Wartbarkeit identifiziert und sollen Schritt für Schritt umgesetzt werden:
 
-### 1. Base API Service (Netzwerk-Schicht)
-* **Ziel:** Zusammenführung der `fetch`-Logik aus `GoogleApiService` und `Trading212Service` in einen zentralen `BaseApiService` (oder `HttpClient`).
-* **Vorteil:** Einheitliches Error-Handling, globale Timeout-Steuerung (`AbortController`), zentrale Retry-Logik (für 429/503 Fehler) und gebündeltes Response-Logging ins FileSystem.
 
 ### 2. Utils-Schicht etablieren (Separation of Concerns)
 * **`JsonUtils`:** Extraktion der fehleranfälligen JSON-Sanitizing-Logik (z. B. das Entfernen von Markdown-Backticks via `indexOf('{')`) aus dem `GoogleApiService`. Der API-Service soll nur noch Daten transportieren, nicht mehr parsen.
@@ -47,3 +44,7 @@ Memoisierung der Berechnungen in `AssetRepository.getPositionStats` (z. B. durch
 
 ### ✅ Gewinnstatistik 
 Die App verfügt über ein dediziertes Statistik-Dashboard, das realisierte und unrealisierte Gewinne präzise voneinander trennt. Es schlüsselt die Performance für das Gesamtportfolio sowie pro Einzelaktie auf und zeigt neben dem absoluten Euro-Wert stets die prozentuale Rendite bezogen auf das exakt für diese Anteile eingesetzte Kapital an.
+
+### ✅ Base API Service (Netzwerk-Schicht)
+* **Ziel:** Zusammenführung der `fetch`-Logik aus `GoogleApiService` und `Trading212Service` in einen zentralen `BaseApiService` (oder `HttpClient`).
+* **Vorteil:** Einheitliches Error-Handling, globale Timeout-Steuerung (`AbortController`), zentrale Retry-Logik (für 429/503 Fehler) und gebündeltes Response-Logging ins FileSystem.
