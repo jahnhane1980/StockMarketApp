@@ -42,4 +42,5 @@ Die folgenden Punkte wurden zur Verbesserung der Code-Qualität, Performance und
 ### ❌ Verworfen: React Navigation
 Die ursprüngliche Idee, *React Navigation* zu integrieren, wurde offiziell gestrichen. Die App funktioniert konzeptionell als slickes **Single-Screen-Dashboard**. Die Steuerung der Overlays über einfache Boolean-Flags im `useUiState`-Hook ist absolut ausreichend, hochperformant und erspart uns unnötigen Library-Overhead.
 
-### ✅ Business-Logik (Berechnungen)**: Memoisierung der Berechnungen in `AssetRepository.getPositionStats` (z. B. durch einen Selector). Damit wird verhindert, dass die Kalkulationen bei jedem UI-Update unnötig neu ausgeführt werden.
+### ✅ Business-Logik (Berechnungen)
+Memoisierung der Berechnungen in `AssetRepository.getPositionStats` (z. B. durch einen Selector). Damit wird verhindert, dass die Kalkulationen bei jedem UI-Update unnötig neu ausgeführt werden.
