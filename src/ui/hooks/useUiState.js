@@ -11,7 +11,8 @@ export const useUiState = () => {
     macro: false, 
     finance: false, 
     radar: false,
-    confirmRefresh: false
+    confirmRefresh: false,
+    statistic: false // NEU: Flag für den neuen Statistik-Dialog
   });
 
   const [activeTicker, setActiveTicker] = useState(null);

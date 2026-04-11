@@ -18,6 +18,7 @@ import FinancialDialog from './components/FinancialDialog';
 import StockRadarDialog from './components/StockRadarDialog';
 import ConfirmRefreshDialog from './components/ConfirmRefreshDialog';
 import FinancialDashboard from './components/FinancialDashboard';
+import StatisticDialog from './components/StatisticDialog'; // NEU: Import hinzugefügt
 
 // Ausgelagerte Komponenten
 import MainToolbar from './components/MainToolbar';
@@ -107,6 +108,10 @@ export default function MainView() {
           <FinancialDialog visible={dialogs.finance} initialData={finData} onClose={() => actions.toggleDialog('finance', false)} onSave={actions.handleUpdateFinance} />
           <StockRadarDialog visible={dialogs.radar} radarData={radarData} initialTicker={activeTicker} onClose={() => actions.toggleDialog('radar', false)} onAddAsset={(data) => actions.toggleDialog('addAsset', true, data)} />
           <ConfirmRefreshDialog visible={dialogs.confirmRefresh} onClose={() => actions.toggleDialog('confirmRefresh', false)} onConfirm={actions.executeForceRefresh} />
+          
+          {/* NEU: Statistic Dialog */}
+          <StatisticDialog visible={dialogs.statistic} assets={assets} onClose={() => actions.toggleDialog('statistic', false)} />
+          
         </SafeAreaView>
       </SafeAreaProvider>
     </ThemeContext.Provider>
