@@ -1,5 +1,8 @@
 // src/api/GoogleApiService.js - Refactored AI Core & Radar Prompt (Full-Body)
 
+// import { SYSTEM_PROMPT as MACRO_PROMPT } from '../assets/prompt_stock_analyser'; muss  Config.PROMPT_PATH verwenden
+// import { RADAR_SYSTEM_PROMPT } from '../assets/prompt_stock_radar'; muss Config.PROMPT_PATH_RADAR verwenden
+ 
 import { Config } from '../core/Config';
 import { HttpClient } from './HttpClient';
 import { SYSTEM_PROMPT as MACRO_PROMPT } from '../assets/prompt_stock_analyser';

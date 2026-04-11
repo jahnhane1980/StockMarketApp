@@ -6,7 +6,8 @@ export const Config = {
   GOOGLE_API: {
     URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
     KEY: "", 
-    PROMPT_PATH: 'assets/prompt_stock_analyser.js'
+    PROMPT_PATH: 'assets/prompt_stock_analyser.js',
+    PROMPT_PATH_RADAR: 'assets/prompt_stock_radar.js'
   },
   TRADING212_API: {
     URL: "https://live.trading212.com/api/v0",
