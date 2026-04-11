@@ -44,3 +44,6 @@ Die ursprüngliche Idee, *React Navigation* zu integrieren, wurde offiziell gest
 
 ### ✅ Business-Logik (Berechnungen)
 Memoisierung der Berechnungen in `AssetRepository.getPositionStats` (z. B. durch einen Selector). Damit wird verhindert, dass die Kalkulationen bei jedem UI-Update unnötig neu ausgeführt werden.
+
+### ✅ Gewinnstatistik 
+Die App verfügt über ein dediziertes Statistik-Dashboard, das realisierte und unrealisierte Gewinne präzise voneinander trennt. Es schlüsselt die Performance für das Gesamtportfolio sowie pro Einzelaktie auf und zeigt neben dem absoluten Euro-Wert stets die prozentuale Rendite bezogen auf das exakt für diese Anteile eingesetzte Kapital an.

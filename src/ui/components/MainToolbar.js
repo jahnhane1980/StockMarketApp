@@ -140,6 +140,12 @@ const MainToolbar = ({ actions, settings, macroData, isLoading, hasT212Credentia
             <Text style={styles.menuText}>History</Text>
           </TouchableOpacity>
 
+          {/* NEU: Statistic Menu Item */}
+          <TouchableOpacity style={[styles.menuItem, styles.menuItemBorder]} onPress={() => closeMenuAndDo(() => actions.toggleDialog('statistic', true))}>
+            {fontsLoaded && <Ionicons name="stats-chart-outline" size={20} color={theme.colors.text} />}
+            <Text style={styles.menuText}>Statistic</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.menuItem} onPress={() => closeMenuAndDo(() => actions.toggleDialog('settings', true))}>
             {fontsLoaded && <Ionicons name="settings-outline" size={20} color={theme.colors.text} />}
             <Text style={styles.menuText}>Settings</Text>
